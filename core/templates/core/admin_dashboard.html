@@ -1,0 +1,137 @@
+{% extends "core/admin_base.html" %}
+
+{% block content %}
+
+<style>
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .page-subtitle {
+        color: #475569;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stat-number {
+        font-size: 36px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .stat-label {
+        color: #475569;
+        margin-top: 6px;
+    }
+
+    .icon-box {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: #eff6ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        color: #3b82f6;
+    }
+
+    .activity-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 28px;
+        margin-top: 36px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    .activity-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #0f172a;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 12px;
+        padding: 14px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .activity-dot {
+        width: 10px;
+        height: 10px;
+        background: #3b82f6;
+        border-radius: 50%;
+        margin-top: 6px;
+    }
+
+    .activity-text {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .activity-time {
+        font-size: 14px;
+        color: #64748b;
+    }
+</style>
+
+<!-- HEADER -->
+<h1 class="page-title">Admin Dashboard</h1>
+<p class="page-subtitle">
+    Welcome back! Here's an overview of your performance management system.
+</p>
+
+<!-- STATS -->
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">Total Employees</div>
+                <div class="stat-number">{{ total_employees }}</div>
+                <div class="stat-label">Active team members</div>
+            </div>
+            <div class="icon-box">👥</div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">Total Check-ins</div>
+                <div class="stat-number">{{ total_checkins }}</div>
+                <div class="stat-label">Completed this month</div>
+            </div>
+            <div class="icon-box">📋</div>
+        </div>
+    </div>
+</div>
+
+<!-- RECENT ACTIVITY -->
+<div class="activity-card">
+    <div class="activity-title">📈 Recent Activity</div>
+
+    {% for activity in recent_activities %}
+    <div class="activity-item">
+        <div class="activity-dot"></div>
+        <div>
+            <div class="activity-text">{{ activity.text }}</div>
+            <div class="activity-time">{{ activity.time }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

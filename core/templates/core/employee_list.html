@@ -1,0 +1,64 @@
+{% extends "core/admin_base.html" %}
+
+{% block content %}
+
+<style>
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 24px;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    table th {
+        color: #64748b;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    table td {
+        vertical-align: middle;
+    }
+
+    .status-active {
+        color: #16a34a;
+        font-weight: 600;
+    }
+</style>
+
+<h1 class="page-title">Employees</h1>
+
+<div class="table-card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for employee in employees %}
+            <tr>
+                <td>{{ employee.email }}</td>
+                <td>Employee</td>
+                <td class="status-active">Active</td>
+                <td>{{ employee.created_at|date:"d M Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No employees found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

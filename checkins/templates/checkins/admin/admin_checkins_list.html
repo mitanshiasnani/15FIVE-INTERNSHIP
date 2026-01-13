@@ -1,0 +1,65 @@
+{% extends "core/admin_base.html" %}
+
+{% block title %}Check-In History{% endblock %}
+
+{% block content %}
+<div style="padding: 24px">
+
+  <h1>Check-In History</h1>
+
+  <div style="display: flex; gap: 20px; margin: 20px 0;">
+    <div>
+      <strong>Total Submitted:</strong> {{ total_submitted }}
+    </div>
+    <div>
+      <strong>Pending Review:</strong> {{ pending_review }}
+    </div>
+    <div>
+      <strong>Reviewed:</strong> {{ reviewed }}
+    </div>
+  </div>
+
+  <table border="1" cellpadding="10" cellspacing="0" width="100%">
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>Check-In</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for a in assignments %}
+      <tr>
+        <td>{{ a.employee.email }}</td>
+        <td>{{ a.checkin_form.title }}</td>
+
+        <td>
+          {% if a.status == "PENDING" %}
+            <span class="badge bg-secondary">Not Submitted</span>
+
+          {% elif a.status == "SUBMITTED" %}
+            <span class="badge bg-warning text-dark">Pending Review</span>
+
+          {% elif a.status == "REVIEWED" %}
+            <span class="badge bg-success">Reviewed</span>
+          {% endif %}
+        </td>
+
+        <td>
+          <a href="{% url 'admin_checkin_detail' a.id %}">
+            View
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4">No check-ins available</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+{% endblock %}

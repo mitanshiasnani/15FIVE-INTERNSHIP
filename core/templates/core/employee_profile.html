@@ -1,0 +1,50 @@
+{% extends "core/employee_base.html" %}
+
+{% block title %}Employee Profile | 15-Five{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Employee Profile</h1>
+
+<div class="profile-card">
+
+    <!-- Header -->
+    <div class="profile-header">
+        <div class="profile-avatar">👤</div>
+        <div>
+            <div class="profile-name">Employee Name</div>
+            <div class="profile-email">employee@email.com</div>
+        </div>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <!-- Details -->
+    <div class="profile-row">
+        <div class="profile-label">Designation</div>
+        <div class="profile-value">Software Engineer</div>
+    </div>
+
+    <div class="profile-row">
+        <div class="profile-label">Department</div>
+        <div class="profile-value">Engineering</div>
+    </div>
+
+    <div class="profile-row">
+        <div class="profile-label">Reporting Manager</div>
+        <div class="profile-value">Admin Name</div>
+    </div>
+
+    <div class="profile-row">
+        <div class="profile-label">Joined On</div>
+        <div class="profile-value">12 Jan 2026</div>
+    </div>
+
+    <!-- Footer note -->
+    <div class="profile-note">
+        Profile editing will be enabled in a later module.
+    </div>
+
+</div>
+
+{% endblock %}

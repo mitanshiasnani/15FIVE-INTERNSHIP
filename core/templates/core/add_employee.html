@@ -1,0 +1,175 @@
+{% extends "core/admin_base.html" %}
+
+{% block content %}
+
+<style>
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .page-subtitle {
+        color: #475569;
+        margin-bottom: 24px;
+    }
+
+    .form-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 32px;
+        max-width: 820px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .form-control {
+        height: 52px;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        padding-left: 44px;
+    }
+
+    .input-icon {
+        position: absolute;
+        top: 50%;
+        left: 14px;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .helper-text {
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 6px;
+    }
+
+    .note-box {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e3a8a;
+        border-radius: 12px;
+        padding: 16px;
+        font-size: 14px;
+        margin-top: 24px;
+    }
+
+    .btn-primary {
+        background-color: #4f8fe7;
+        border: none;
+        height: 52px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .btn-outline {
+        height: 52px;
+        border-radius: 12px;
+        padding: 0 28px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        font-weight: 600;
+    }
+</style>
+
+<!-- PAGE HEADER -->
+<h1 class="page-title">Add New Employee</h1>
+<p class="page-subtitle">
+    Create a new employee account and send them their login credentials
+</p>
+
+<!-- FORM CARD -->
+<div class="form-card">
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- EMAIL -->
+        <div class="mb-4">
+            <label class="form-label">Email Address <span class="text-danger">*</span></label>
+
+            <div class="input-wrapper">
+                <span class="input-icon">✉️</span>
+                <input
+                    type="email"
+                    name="email"
+                    class="form-control"
+                    placeholder="employee@company.com"
+                    required
+                >
+            </div>
+
+            <div class="helper-text">
+                This will be the employee's login email
+            </div>
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="mb-4">
+            <label class="form-label">Password <span class="text-danger">*</span></label>
+
+            <div class="input-wrapper">
+                <span class="input-icon">🔒</span>
+                <input
+                    type="password"
+                    name="password"
+                    class="form-control"
+                    placeholder="Enter password"
+                    required
+                >
+            </div>
+
+            <div class="helper-text">
+                Must be at least 8 characters long
+            </div>
+        </div>
+
+        <!-- CONFIRM PASSWORD (UI ONLY FOR NOW) -->
+        <div class="mb-4">
+            <label class="form-label">
+                Confirm Password <span class="text-muted">(Optional)</span>
+            </label>
+
+            <div class="input-wrapper">
+                <span class="input-icon">🔒</span>
+                <input
+                    type="password"
+                    class="form-control"
+                    placeholder="Re-enter password"
+                >
+            </div>
+        </div>
+
+        <!-- NOTE BOX -->
+        <div class="note-box">
+            <strong>ℹ️ Note:</strong>
+            Login credentials will be automatically emailed to the employee
+            at the provided email address. They will be able to log in
+            immediately after account creation.
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="d-flex gap-3 mt-4">
+            <button type="submit" class="btn btn-primary flex-grow-1">
+                ➕ Add Employee
+            </button>
+
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline">
+                Cancel
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

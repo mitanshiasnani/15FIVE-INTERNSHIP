@@ -1,0 +1,114 @@
+{% extends "core/employee_base.html" %}
+{% load static %}
+
+{% block title %}My Check-Ins | 15-Five{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px;">
+
+    <!-- Page Title -->
+    <h1 style="font-size:32px;font-weight:700;margin-bottom:28px;">
+        My Check-Ins
+    </h1>
+
+    {% if assignments %}
+        <div style="display:flex;flex-direction:column;gap:20px;">
+
+            {% for assignment in assignments %}
+            <div style="
+                background:#ffffff;
+                border-radius:16px;
+                padding:20px 24px;
+                box-shadow:0 4px 14px rgba(0,0,0,0.06);
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+            ">
+
+                <!-- LEFT -->
+                <div style="display:flex;gap:16px;align-items:center;">
+
+                    <!-- Status Icon -->
+                    <div style="
+                        width:48px;
+                        height:48px;
+                        border-radius:50%;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:20px;
+                        background:
+                        {% if assignment.status == 'SUBMITTED' %}
+                            #dcfce7
+                        {% else %}
+                            #fef3c7
+                        {% endif %};
+                    ">
+                        {% if assignment.status == 'SUBMITTED' %}
+                            ✔
+                        {% else %}
+                            ⏰
+                        {% endif %}
+                    </div>
+
+                    <!-- Info -->
+                    <div>
+                        <div style="font-weight:600;font-size:16px;">
+                            {{ assignment.checkin_form.title }}
+                        </div>
+                        <div style="font-size:14px;color:#64748b;">
+                            Due {{ assignment.checkin_form.deadline|date:"M d, Y" }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT -->
+                <div style="display:flex;gap:12px;align-items:center;">
+
+                    {% if assignment.status == 'SUBMITTED' %}
+                        <span style="
+                            padding:6px 14px;
+                            border-radius:999px;
+                            background:#dcfce7;
+                            color:#16a34a;
+                            font-size:13px;
+                            font-weight:600;
+                        ">
+                            Submitted
+                        </span>
+                    {% else %}
+                        <span style="
+                            padding:6px 14px;
+                            border-radius:999px;
+                            background:#fef3c7;
+                            color:#d97706;
+                            font-size:13px;
+                            font-weight:600;
+                        ">
+                            Pending
+                        </span>
+
+                        <a href="{% url 'employee_checkin_form' assignment.id %}"
+                           style="
+                                background:#3b82f6;
+                                color:#ffffff;
+                                padding:10px 18px;
+                                border-radius:999px;
+                                font-weight:600;
+                                font-size:14px;
+                                text-decoration:none;
+                           ">
+                            Submit
+                        </a>
+                    {% endif %}
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color:#64748b;">No check-ins assigned yet.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

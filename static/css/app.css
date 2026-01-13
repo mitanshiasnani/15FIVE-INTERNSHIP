@@ -1,0 +1,387 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Inter, Arial, sans-serif;
+    background: #f5f7fb;
+}
+
+/* LAYOUT */
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 260px;
+    background: #0f2a44;
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.logo {
+    background: #4c8bf5;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 10px;
+    flex: 1;
+}
+
+.sidebar-menu a {
+    display: block;
+    padding: 12px 16px;
+    color: #cfd8e3;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+
+.sidebar-menu a.active,
+.sidebar-menu a:hover {
+    background: #4c8bf5;
+    color: white;
+}
+
+.sidebar-footer {
+    padding: 16px;
+}
+
+.logout {
+    color: #ffb4b4;
+    text-decoration: none;
+}
+
+/* MAIN CONTENT */
+.main-content {
+    flex: 1;
+    padding: 32px 40px;
+}
+
+.content-wrapper {
+    max-width: 900px;
+}
+
+/* DASHBOARD */
+.page-title {
+    font-size: 28px;
+    margin-bottom: 28px;
+}
+
+.section-title {
+    font-size: 18px;
+    margin-bottom: 16px;
+}
+
+/* KPI */
+.kpi-card {
+    background: white;
+    padding: 24px;
+    border-radius: 14px;
+    display: flex;
+    gap: 20px;
+    margin-bottom: 32px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+.kpi-icon {
+    width: 56px;
+    height: 56px;
+    background: #4c8bf5;
+    color: white;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kpi-label {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.kpi-value {
+    font-size: 28px;
+    font-weight: 600;
+}
+
+/* CHECKINS */
+.checkin-card {
+    background: white;
+    padding: 22px 24px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+.checkin-left {
+    display: flex;
+    gap: 16px;
+}
+
+.checkin-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkin-icon.warning {
+    background: #fff3cd;
+    color: #f59e0b;
+}
+
+.checkin-icon.success {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.checkin-title {
+    font-weight: 600;
+}
+
+.checkin-date {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.checkin-right {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.badge {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+}
+
+.badge.pending {
+    background: #fff3cd;
+    color: #f59e0b;
+}
+
+.badge.submitted {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.primary-btn {
+    background: #4c8bf5;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+/* PROFILE */
+.profile-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 700px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.profile-avatar {
+    width: 56px;
+    height: 56px;
+    background: #4c8bf5;
+    color: white;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.profile-name {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.profile-email {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.profile-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 24px 0;
+}
+
+.profile-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+}
+
+.profile-label {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.profile-value {
+    font-weight: 500;
+}
+
+.profile-note {
+    margin-top: 24px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* ============================= */
+/* CHECK-IN FORM PAGE */
+/* ============================= */
+
+.checkin-page {
+    max-width: 900px;
+}
+
+/* Header */
+.checkin-header {
+    margin-bottom: 24px;
+}
+
+.checkin-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+/* Meta pills */
+.checkin-meta {
+    display: flex;
+    gap: 12px;
+}
+
+/* Scoped badges (do NOT clash with dashboard badges) */
+.checkin-meta .badge {
+    background: #e0edff;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.checkin-meta .deadline {
+    background: #fff3cd;
+    color: #f59e0b;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Form Card */
+.checkin-form-card {
+    background: white;
+    padding: 28px;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+/* Questions */
+.checkin-question {
+    margin-bottom: 26px;
+}
+
+.checkin-question h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.checkin-question h3 span {
+    color: #4c8bf5;
+    margin-right: 6px;
+}
+
+/* Textarea */
+.checkin-form-card textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    font-size: 14px;
+    resize: vertical;
+    font-family: Inter, Arial, sans-serif;
+}
+
+.checkin-form-card textarea::placeholder {
+    color: #9ca3af;
+}
+
+.checkin-form-card textarea:focus {
+    outline: none;
+    border-color: #4c8bf5;
+}
+
+/* Footer Action Bar */
+.checkin-footer {
+    margin-top: 24px;
+    padding: 16px 0;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.checkin-footer span {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.checkin-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.checkin-actions .secondary-btn {
+    background: white;
+    border: 1px solid #e5e7eb;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.checkin-actions .primary-btn {
+    padding: 10px 18px;
+}
+

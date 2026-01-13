@@ -1,0 +1,60 @@
+{% extends "core/employee_base.html" %}
+
+{% block title %}Employee Dashboard | 15-Five{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Employee Dashboard</h1>
+
+<div class="kpi-card">
+    <div class="kpi-icon">✓</div>
+    <div>
+        <div class="kpi-label">Total Check-Ins Submitted</div>
+        <div class="kpi-value">24</div>
+    </div>
+</div>
+
+<h2 class="section-title">Pending Check-Ins</h2>
+
+<div class="checkin-card">
+    <div class="checkin-left">
+        <div class="checkin-icon warning">⏰</div>
+        <div>
+            <div class="checkin-title">Weekly Check-In</div>
+            <div class="checkin-date">Due Jan 12, 2026</div>
+        </div>
+    </div>
+    <div class="checkin-right">
+        <span class="badge pending">Pending</span>
+        <button class="primary-btn">Submit</button>
+    </div>
+</div>
+
+<div class="checkin-card">
+    <div class="checkin-left">
+        <div class="checkin-icon warning">⏰</div>
+        <div>
+            <div class="checkin-title">Monthly Review</div>
+            <div class="checkin-date">Due Jan 15, 2026</div>
+        </div>
+    </div>
+    <div class="checkin-right">
+        <span class="badge pending">Pending</span>
+        <button class="primary-btn">Submit</button>
+    </div>
+</div>
+
+<div class="checkin-card">
+    <div class="checkin-left">
+        <div class="checkin-icon success">✓</div>
+        <div>
+            <div class="checkin-title">Q1 Goals Update</div>
+            <div class="checkin-date">Due Jan 20, 2026</div>
+        </div>
+    </div>
+    <div class="checkin-right">
+        <span class="badge submitted">Submitted</span>
+    </div>
+</div>
+
+{% endblock %}

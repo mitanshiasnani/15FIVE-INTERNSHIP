@@ -1,0 +1,39 @@
+{% extends "core/admin_base.html" %}
+
+{% block title %}Check-In Review{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <h1>Check-In Review</h1>
+
+  <p><strong>Employee:</strong> {{ assignment.employee.email }}</p>
+  <p><strong>Period:</strong> {{ assignment.checkin_form.title }}</p>
+
+  <div class="card mb-4 p-3">
+    {% for ans in answers %}
+      <div class="mb-3">
+        <h6>{{ forloop.counter }}. {{ ans.question.question_text }}</h6>
+        <textarea class="form-control" rows="3" readonly>
+{{ ans.answer_text }}
+        </textarea>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- ✅ REVIEW ACTION -->
+  {% if assignment.review_status != "REVIEWED" %}
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success">
+        Mark as Reviewed
+      </button>
+    </form>
+  {% else %}
+    <span class="badge bg-success fs-6">
+      Reviewed ✔
+    </span>
+  {% endif %}
+
+</div>
+{% endblock %}

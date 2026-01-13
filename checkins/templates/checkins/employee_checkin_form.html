@@ -1,0 +1,211 @@
+{% extends "core/employee_base.html" %}
+{% load checkin_extras %}
+
+{% block title %}Check-In Form | 15-Five{% endblock %}
+
+{% block content %}
+<style>
+/* 🔒 DESIGN UNCHANGED */
+:root {
+  --blue: #3b82f6;
+  --blue-light: #e0edff;
+  --yellow-bg: #fff7ed;
+  --yellow-text: #d97706;
+  --border: #e5e7eb;
+  --text: #0f172a;
+  --muted: #64748b;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+.page {
+  padding: 32px 48px 120px 48px;
+  max-width: 1200px;
+}
+
+.header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.meta {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--blue-light);
+  color: var(--blue);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--yellow-bg);
+  color: var(--yellow-text);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.question {
+  margin-bottom: 26px;
+}
+
+.question h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.question h3 span {
+  color: var(--blue);
+  margin-right: 6px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 15px;
+  resize: vertical;
+  outline: none;
+}
+
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+textarea:focus {
+  border-color: var(--blue);
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 240px;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid var(--border);
+  padding: 16px 48px;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer p {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: white;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+</style>
+
+<form method="post">
+{% csrf_token %}
+
+<div class="page">
+
+  <div class="header">
+    <h1>Check-In Form</h1>
+    <div class="meta">
+      <div class="badge">📅 Period: {{ assignment.checkin_form.period }}</div>
+      <div class="deadline">
+        ⏰ Deadline: {{ assignment.checkin_form.deadline|date:"l, F d, Y" }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    {% for q in questions %}
+      <div class="question">
+        <h3>
+          <span>{{ forloop.counter }}.</span>
+          {{ q.question.question_text }}
+        </h3>
+
+        <textarea
+          name="question_{{ q.question.id }}"
+          placeholder="Type your response here..."
+          {% if assignment.status == "SUBMITTED" %}readonly{% endif %}
+        >{{ existing_answers|get_item:q.question.id }}</textarea>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="footer">
+    <div class="footer-inner">
+      <p>
+        {% if assignment.status == "SUBMITTED" %}
+          This check-in has been submitted
+        {% else %}
+          Your progress is auto-saved as you type
+        {% endif %}
+      </p>
+
+      {% if assignment.status == "PENDING" %}
+        <div class="actions">
+          <button type="submit" name="action" value="draft" class="btn">
+            💾 Save Draft
+          </button>
+          <button type="submit" name="action" value="submit" class="btn btn-primary">
+            ✈ Submit Check-In
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+</form>
+{% endblock %}
