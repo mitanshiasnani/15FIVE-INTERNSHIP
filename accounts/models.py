@@ -46,3 +46,29 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+        
+class EmployeeProfile(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="employee_profile"
+    )
+
+    full_name = models.CharField(max_length=100)
+    designation = models.CharField(max_length=100)
+    department = models.CharField(max_length=100)
+
+    reporting_manager = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="managed_employees"
+    )
+
+    joined_on = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.full_name
+

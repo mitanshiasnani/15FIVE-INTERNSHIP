@@ -5,42 +5,61 @@
     <meta charset="UTF-8">
     <title>{% block title %}Employee | 15-Five{% endblock %}</title>
 
-    
-
     <!-- Common App CSS -->
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
 <body>
 
-    <body>
-        <div class="wrapper">
-        
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                    <span class="logo">15</span>
-                    <span class="brand">15-Five</span>
-                </div>
-        
-                <ul class="sidebar-menu">
-                    <li><a href="{% url 'employee_profile' %}">Employee Profile</a></li>
-                    <li><a href="{% url 'employee_dashboard' %}" class="active">Dashboard</a></li>
-                    <li><a href="{% url 'employee_checkins' %}">Check-Ins</a></li>
-                    <li><a href="{% url 'employee_history' %}">Check-In History</a></li>
-                    <li><a href="{% url 'employee_settings' %}">Settings</a></li>
-                </ul>
-        
-                <div class="sidebar-footer">
-                    <a href="{% url 'logout' %}" class="logout">Logout</a>
-                </div>
-            </aside>
-        
-            <main class="main-content">
-                <div class="content-wrapper">
-                    {% block content %}{% endblock %}
-                </div>
-            </main>
-        
+<div class="wrapper">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo">15</span>
+            <span class="brand">15-Five</span>
         </div>
-        </body>
-        </html>
-        
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{% url 'employee_profile' %}"
+                   class="{% if request.resolver_match.url_name == 'employee_profile' %}active{% endif %}">
+                   Employee Profile
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'employee_dashboard' %}"
+                   class="{% if request.resolver_match.url_name == 'employee_dashboard' %}active{% endif %}">
+                   Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'employee_checkins' %}"
+                   class="{% if request.resolver_match.url_name == 'employee_checkins' %}active{% endif %}">
+                   Check-Ins
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'employee_settings' %}"
+                   class="{% if request.resolver_match.url_name == 'employee_settings' %}active{% endif %}">
+                   Settings
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}" class="logout">Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="content-wrapper">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+</div>
+
+</body>
+</html>

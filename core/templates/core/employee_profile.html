@@ -3,48 +3,74 @@
 {% block title %}Employee Profile | 15-Five{% endblock %}
 
 {% block content %}
+<div style="max-width: 900px;">
 
-<h1 class="page-title">Employee Profile</h1>
+  <h1 style="font-size:32px;font-weight:700;margin-bottom:28px;">
+    Employee Profile
+  </h1>
 
-<div class="profile-card">
+  <div style="
+      background:#ffffff;
+      border-radius:16px;
+      padding:28px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.06);
+  ">
 
-    <!-- Header -->
-    <div class="profile-header">
-        <div class="profile-avatar">👤</div>
-        <div>
-            <div class="profile-name">Employee Name</div>
-            <div class="profile-email">employee@email.com</div>
+    <div style="display:flex;gap:20px;align-items:center;margin-bottom:24px;">
+      <div style="
+          width:64px;
+          height:64px;
+          border-radius:50%;
+          background:#3b82f6;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:white;
+          font-size:28px;
+          font-weight:600;
+      ">
+        {{ profile.full_name|slice:":1" }}
+      </div>
+
+      <div>
+        <div style="font-size:20px;font-weight:700;">
+          {{ profile.full_name }}
         </div>
+        <div style="color:#64748b;">
+          {{ profile.user.email }}
+        </div>
+      </div>
     </div>
 
-    <div class="profile-divider"></div>
+    <hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;">
 
-    <!-- Details -->
-    <div class="profile-row">
-        <div class="profile-label">Designation</div>
-        <div class="profile-value">Software Engineer</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;row-gap:16px;">
+      <div style="color:#64748b;">Designation</div>
+      <div style="font-weight:600;">{{ profile.designation }}</div>
+
+      <div style="color:#64748b;">Department</div>
+      <div style="font-weight:600;">{{ profile.department }}</div>
+
+      <div style="color:#64748b;">Reporting Manager</div>
+      <div style="font-weight:600;">
+        {% if profile.reporting_manager %}
+          {{ profile.reporting_manager.email }}
+        {% else %}
+          —
+        {% endif %}
+      </div>
+
+      <div style="color:#64748b;">Joined On</div>
+      <div style="font-weight:600;">
+        {{ profile.joined_on|date:"d M Y" }}
+      </div>
     </div>
 
-    <div class="profile-row">
-        <div class="profile-label">Department</div>
-        <div class="profile-value">Engineering</div>
-    </div>
+    <p style="margin-top:24px;color:#64748b;font-size:14px;">
+      Profile editing will be enabled in a later module.
+    </p>
 
-    <div class="profile-row">
-        <div class="profile-label">Reporting Manager</div>
-        <div class="profile-value">Admin Name</div>
-    </div>
-
-    <div class="profile-row">
-        <div class="profile-label">Joined On</div>
-        <div class="profile-value">12 Jan 2026</div>
-    </div>
-
-    <!-- Footer note -->
-    <div class="profile-note">
-        Profile editing will be enabled in a later module.
-    </div>
+  </div>
 
 </div>
-
 {% endblock %}

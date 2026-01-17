@@ -11,7 +11,8 @@ from .models import (
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
-
+from django.http import HttpResponse
+from checkins.models import CheckInAssignment
 
 # -------------------------------
 # ADMIN: CREATE CHECK-IN
@@ -21,12 +22,26 @@ def create_checkin(request):
     if request.user.role != "ADMIN":
         return redirect("employee_dashboard")
 
-    # show default questions in UI
+    # Show default questions in UI
     questions = Question.objects.filter(is_default=True)
 
     if request.method == "POST":
         period = request.POST.get("period")
         deadline = request.POST.get("deadline")
+
+        selected_questions = request.POST.getlist("questions")
+        custom_questions = request.POST.getlist("custom_questions[]")
+
+        # ❗ Guard: at least one question required
+        if not selected_questions and not custom_questions:
+            return render(
+                request,
+                "checkins/create_checkin.html",
+                {
+                    "questions": questions,
+                    "error": "Please select or add at least one question."
+                }
+            )
 
         # 1️⃣ Create check-in form
         checkin = CheckInForm.objects.create(
@@ -36,16 +51,18 @@ def create_checkin(request):
             created_by=request.user
         )
 
-        # 2️⃣ Attach selected DEFAULT questions
-        selected_questions = request.POST.getlist("questions")
+        # 🔥 FIX: ensure checkbox selection is respected
+        CheckInFormQuestion.objects.filter(checkin_form=checkin).delete()
+
+        # 2️⃣ Attach ONLY selected DEFAULT questions
         for q_id in selected_questions:
-            CheckInFormQuestion.objects.get_or_create(
+            CheckInFormQuestion.objects.create(
                 checkin_form=checkin,
                 question_id=q_id
             )
 
-        # 3️⃣ Handle CUSTOM questions
-        for text in request.POST.getlist("custom_questions[]"):
+        # 3️⃣ Handle CUSTOM questions (SAFE)
+        for text in custom_questions:
             text = text.strip()
             if text:
                 q = Question.objects.create(
@@ -63,16 +80,19 @@ def create_checkin(request):
             CheckInAssignment.objects.create(
                 checkin_form=checkin,
                 employee=emp,
-                status="PENDING"
+                status="PENDING",
+                review_status="PENDING"
             )
 
         return redirect("admin_checkins_list")
 
+    # GET request
     return render(
         request,
         "checkins/create_checkin.html",
         {"questions": questions}
     )
+
 
 # -------------------------------
 # EMPLOYEE: CHECK-IN LIST
@@ -80,7 +100,11 @@ def create_checkin(request):
 @login_required
 def employee_checkins(request):
     assignments = CheckInAssignment.objects.filter(employee=request.user)
-    return render(request, "checkins/employee_checkins.html", {"assignments": assignments})
+    return render(
+        request,
+        "core/employee_checkins.html",
+        {"assignments": assignments}
+    )
 
 
 # -------------------------------
@@ -100,7 +124,16 @@ def employee_checkin_form(request, assignment_id):
         .select_related("question")
     )
 
-    if request.method == "POST" and assignment.status == "PENDING":
+    deadline = assignment.checkin_form.deadline.date()
+    today = timezone.now().date()
+    is_expired = today > deadline
+
+    if request.method == "POST":
+        if is_expired:
+            return redirect("employee_checkins")
+
+        action = request.POST.get("action")
+
         for fq in questions:
             CheckInAnswer.objects.update_or_create(
                 assignment=assignment,
@@ -113,9 +146,10 @@ def employee_checkin_form(request, assignment_id):
                 }
             )
 
-        assignment.status = "SUBMITTED"
-        assignment.submitted_at = timezone.now()
-        assignment.save()
+        if action == "submit":
+            assignment.status = "SUBMITTED"
+            assignment.submitted_at = timezone.now()
+            assignment.save()
 
         return redirect("employee_checkins")
 
@@ -131,50 +165,58 @@ def employee_checkin_form(request, assignment_id):
             "assignment": assignment,
             "questions": questions,
             "existing_answers": existing_answers,
+            "is_expired": is_expired,
         }
     )
 
 
 # -------------------------------
-# ADMIN: CHECK-INS LIST (MODULE 6)
+# ADMIN: CHECK-INS LIST
+# -------------------------------
+# -------------------------------
+# ADMIN: CHECK-INS HISTORY (FORM LEVEL)
 # -------------------------------
 @login_required
 def admin_checkins_list(request):
     if request.user.role != "ADMIN":
         return redirect("employee_dashboard")
 
-    assignments = (
-        CheckInAssignment.objects
-        .select_related("employee", "checkin_form")
-        .order_by("-assigned_at")
+    rows = []
+
+    forms = (
+        CheckInForm.objects
+        .filter(is_active=True)
+        .order_by("-created_at")
     )
 
-    total_submitted = assignments.filter(status="SUBMITTED").count()
-    pending_review = assignments.filter(
-        status="SUBMITTED",
-        review_status="PENDING"
-    ).count()
-    reviewed = assignments.filter(
-        status="SUBMITTED",
-        review_status="REVIEWED"
-    ).count()
+    for form in forms:
+        assignments = CheckInAssignment.objects.filter(checkin_form=form)
+
+        rows.append({
+            "form": form,
+            "total": assignments.count(),
+            "submitted": assignments.filter(status="SUBMITTED").count(),
+            "pending_review": assignments.filter(
+                status="SUBMITTED",
+                review_status="PENDING"
+            ).count(),
+            "reviewed": assignments.filter(
+                status="SUBMITTED",
+                review_status="REVIEWED"
+            ).count(),
+        })
 
     return render(
         request,
         "checkins/admin/admin_checkins_list.html",
         {
-            "assignments": assignments,
-            "total_submitted": total_submitted,
-            "pending_review": pending_review,
-            "reviewed": reviewed,
+            "rows": rows
         }
     )
 
-
-
-
-
-
+# -------------------------------
+# ADMIN: CHECK-IN DETAIL (REVIEW)
+# -------------------------------
 @login_required
 def admin_checkin_detail(request, assignment_id):
     if request.user.role != "ADMIN":
@@ -188,8 +230,12 @@ def admin_checkin_detail(request, assignment_id):
         .select_related("question")
     )
 
-    if request.method == "POST" and assignment.status == "SUBMITTED":
-        assignment.status = "REVIEWED"
+    if (
+        request.method == "POST"
+        and assignment.status == "SUBMITTED"
+        and assignment.review_status == "PENDING"
+    ):
+        assignment.review_status = "REVIEWED"
         assignment.reviewed_at = timezone.now()
         assignment.save()
 
@@ -214,4 +260,67 @@ def admin_checkin_detail(request, assignment_id):
             "answers": answers,
         }
     )
+
+@login_required
+def admin_checkin_form_detail(request, form_id):
+    if request.user.role != "ADMIN":
+        return redirect("employee_dashboard")
+
+    form = get_object_or_404(CheckInForm, id=form_id)
+
+    assignments = (
+        CheckInAssignment.objects
+        .filter(checkin_form=form)
+        .select_related("employee")
+    )
+
+    return render(
+        request,
+        "core/admin_employee_checkins.html",
+        {
+            "form": form,
+            "assignments": assignments,
+        }
+    )
+
+
+
+
+@login_required
+def admin_employee_checkins(request, employee_id):
+    if request.user.role != "ADMIN":
+        return redirect("employee_dashboard")
+
+    employee = get_object_or_404(User, id=employee_id, role="EMPLOYEE")
+
+    assignments = (
+        CheckInAssignment.objects
+        .filter(employee=employee)   # 🔥 THIS IS WHY DATA EXISTS
+        .select_related("checkin_form")
+        .order_by("-assigned_at")
+    )
+
+    return render(
+        request,
+        "core/admin_employee_checkins.html",
+        {
+            "employee": employee,
+            "assignments": assignments,  # 🔥 TEMPLATE EXPECTS THIS
+        }
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

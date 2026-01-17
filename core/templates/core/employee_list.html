@@ -47,7 +47,12 @@
         <tbody>
             {% for employee in employees %}
             <tr>
-                <td>{{ employee.email }}</td>
+                <td>
+                    <a href="{% url 'admin_employee_checkins' employee.id %}"
+                       style="color:#2563eb; font-weight:600; text-decoration:none;">
+                        {{ employee.email }}
+                    </a>
+                </td>
                 <td>Employee</td>
                 <td class="status-active">Active</td>
                 <td>{{ employee.created_at|date:"d M Y" }}</td>

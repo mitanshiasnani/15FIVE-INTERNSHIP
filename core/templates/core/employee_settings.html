@@ -1,4 +1,175 @@
 {% extends "core/employee_base.html" %}
+
+{% block title %}Settings | 15-Five{% endblock %}
+
 {% block content %}
-<h2>Coming soon</h2>
+<style>
+.settings-wrapper {
+    max-width: 720px;
+}
+
+.settings-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
+}
+
+.settings-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.settings-card p.subtext {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 22px;
+}
+
+.divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin-bottom: 22px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 12px 44px 12px 44px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    background: #f8fafc;
+}
+
+.input-wrapper svg {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #94a3b8;
+}
+
+.icon-left {
+    left: 14px;
+}
+
+.icon-right {
+    right: 14px;
+    cursor: pointer;
+}
+
+.password-hint {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 6px;
+}
+
+.primary-btn {
+    margin-top: 16px;
+    padding: 12px 22px;
+    border-radius: 10px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.message {
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+.message.error { color: #dc2626; }
+.message.success { color: #16a34a; }
+</style>
+
+<div class="settings-wrapper">
+    <h1 class="page-title">Settings</h1>
+    <p class="page-subtitle">Manage your account settings and preferences</p>
+
+    <div class="settings-card">
+
+        <h3>Change Password</h3>
+        <p class="subtext">Update your password to keep your account secure</p>
+        <div class="divider"></div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- Current Password -->
+            <div class="form-group">
+                <label>Current Password</label>
+                <div class="input-wrapper">
+                    <svg class="icon-left" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M5 11h14v8H5z"/>
+                    </svg>
+                    <input type="password" name="current_password" placeholder="Enter your current password" required>
+                </div>
+            </div>
+
+            <!-- New Password -->
+            <div class="form-group">
+                <label>New Password</label>
+                <div class="input-wrapper">
+                    <svg class="icon-left" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M5 11h14v8H5z"/>
+                    </svg>
+                    <input type="password" name="new_password" placeholder="Enter your new password" required>
+                </div>
+                <div class="password-hint">
+                    Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.
+                </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+                <label>Confirm New Password</label>
+                <div class="input-wrapper">
+                    <svg class="icon-left" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M5 11h14v8H5z"/>
+                    </svg>
+                    <input type="password" name="confirm_password" placeholder="Confirm your new password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="primary-btn">
+                Update Password
+            </button>
+
+        </form>
+    </div>
+</div>
 {% endblock %}

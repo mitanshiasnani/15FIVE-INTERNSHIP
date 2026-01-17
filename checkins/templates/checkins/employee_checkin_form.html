@@ -107,6 +107,11 @@ textarea:focus {
   border-color: var(--blue);
 }
 
+textarea[readonly] {
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
 .footer {
   position: fixed;
   bottom: 0;
@@ -152,60 +157,67 @@ textarea:focus {
 </style>
 
 <form method="post">
-{% csrf_token %}
-
-<div class="page">
-
-  <div class="header">
-    <h1>Check-In Form</h1>
-    <div class="meta">
-      <div class="badge">📅 Period: {{ assignment.checkin_form.period }}</div>
-      <div class="deadline">
-        ⏰ Deadline: {{ assignment.checkin_form.deadline|date:"l, F d, Y" }}
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    {% for q in questions %}
-      <div class="question">
-        <h3>
-          <span>{{ forloop.counter }}.</span>
-          {{ q.question.question_text }}
-        </h3>
-
-        <textarea
-          name="question_{{ q.question.id }}"
-          placeholder="Type your response here..."
-          {% if assignment.status == "SUBMITTED" %}readonly{% endif %}
-        >{{ existing_answers|get_item:q.question.id }}</textarea>
-      </div>
-    {% endfor %}
-  </div>
-
-  <div class="footer">
-    <div class="footer-inner">
-      <p>
-        {% if assignment.status == "SUBMITTED" %}
-          This check-in has been submitted
-        {% else %}
-          Your progress is auto-saved as you type
-        {% endif %}
-      </p>
-
-      {% if assignment.status == "PENDING" %}
-        <div class="actions">
-          <button type="submit" name="action" value="draft" class="btn">
-            💾 Save Draft
-          </button>
-          <button type="submit" name="action" value="submit" class="btn btn-primary">
-            ✈ Submit Check-In
-          </button>
+  {% csrf_token %}
+  
+  <div class="page">
+  
+    <div class="header">
+      <h1>Check-In Form</h1>
+      <div class="meta">
+        <div class="badge">
+          📅 Period: {{ assignment.checkin_form.period }}
         </div>
-      {% endif %}
+        <div class="deadline">
+          ⏰ Deadline: {{ assignment.checkin_form.deadline|date:"l, F d, Y" }}
+        </div>
+      </div>
     </div>
+  
+    <div class="card">
+      {% for q in questions %}
+        <div class="question">
+          <h3>
+            <span>{{ forloop.counter }}.</span>
+            {{ q.question.question_text }}
+          </h3>
+  
+          <textarea
+            name="question_{{ q.question.id }}"
+            placeholder="Type your response here..."
+            {% if assignment.status == "SUBMITTED" or is_expired %}readonly{% endif %}
+          >{{ existing_answers|get_item:q.question.id }}</textarea>
+        </div>
+      {% endfor %}
+    </div>
+  
+    <div class="footer">
+      <div class="footer-inner">
+  
+        <p>
+          {% if assignment.status == "SUBMITTED" %}
+            ✔ This check-in has been submitted. You can review your answers.
+          {% elif is_expired %}
+            ⛔ The deadline has passed. This check-in is read-only.
+          {% else %}
+            You can save a draft and continue later.
+          {% endif %}
+        </p>
+  
+        {% if assignment.status == "PENDING" and not is_expired %}
+          <div class="actions">
+            <button type="submit" name="action" value="draft" class="btn">
+              💾 Save Draft
+            </button>
+  
+            <button type="submit" name="action" value="submit" class="btn btn-primary">
+              ✈ Submit Check-In
+            </button>
+          </div>
+        {% endif %}
+  
+      </div>
+    </div>
+  
   </div>
-
-</div>
-</form>
-{% endblock %}
+  </form>
+  {% endblock %}

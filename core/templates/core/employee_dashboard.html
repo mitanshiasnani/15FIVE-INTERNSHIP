@@ -6,55 +6,67 @@
 
 <h1 class="page-title">Employee Dashboard</h1>
 
+<!-- KPI CARD -->
 <div class="kpi-card">
     <div class="kpi-icon">✓</div>
     <div>
         <div class="kpi-label">Total Check-Ins Submitted</div>
-        <div class="kpi-value">24</div>
+        <div class="kpi-value">{{ submitted_count }}</div>
     </div>
 </div>
 
 <h2 class="section-title">Pending Check-Ins</h2>
 
-<div class="checkin-card">
-    <div class="checkin-left">
-        <div class="checkin-icon warning">⏰</div>
-        <div>
-            <div class="checkin-title">Weekly Check-In</div>
-            <div class="checkin-date">Due Jan 12, 2026</div>
-        </div>
-    </div>
-    <div class="checkin-right">
-        <span class="badge pending">Pending</span>
-        <button class="primary-btn">Submit</button>
-    </div>
-</div>
+{% if pending_checkins %}
+    {% for assignment in pending_checkins %}
+        <div class="checkin-card">
+            <div class="checkin-left">
+                <div class="checkin-icon warning">⏰</div>
+                <div>
+                    <div class="checkin-title">
+                        {{ assignment.checkin_form.title }}
+                    </div>
+                    <div class="checkin-date">
+                        Due {{ assignment.checkin_form.deadline|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
 
-<div class="checkin-card">
-    <div class="checkin-left">
-        <div class="checkin-icon warning">⏰</div>
-        <div>
-            <div class="checkin-title">Monthly Review</div>
-            <div class="checkin-date">Due Jan 15, 2026</div>
+            <div class="checkin-right">
+                <span class="badge pending">Pending</span>
+                <a href="{% url 'employee_checkin_form' assignment.id %}"
+                   class="primary-btn">
+                    Submit
+                </a>
+            </div>
         </div>
-    </div>
-    <div class="checkin-right">
-        <span class="badge pending">Pending</span>
-        <button class="primary-btn">Submit</button>
-    </div>
-</div>
+    {% endfor %}
+{% else %}
+    <p style="color:#64748b;">No pending check-ins 🎉</p>
+{% endif %}
 
-<div class="checkin-card">
-    <div class="checkin-left">
-        <div class="checkin-icon success">✓</div>
-        <div>
-            <div class="checkin-title">Q1 Goals Update</div>
-            <div class="checkin-date">Due Jan 20, 2026</div>
+{% if submitted_checkins %}
+    <h2 class="section-title">Recently Submitted</h2>
+
+    {% for assignment in submitted_checkins %}
+        <div class="checkin-card">
+            <div class="checkin-left">
+                <div class="checkin-icon success">✓</div>
+                <div>
+                    <div class="checkin-title">
+                        {{ assignment.checkin_form.title }}
+                    </div>
+                    <div class="checkin-date">
+                        Due {{ assignment.checkin_form.deadline|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkin-right">
+                <span class="badge submitted">Submitted</span>
+            </div>
         </div>
-    </div>
-    <div class="checkin-right">
-        <span class="badge submitted">Submitted</span>
-    </div>
-</div>
+    {% endfor %}
+{% endif %}
 
 {% endblock %}
