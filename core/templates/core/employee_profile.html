@@ -3,74 +3,119 @@
 {% block title %}Employee Profile | 15-Five{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px;">
+<div style="max-width: 700px;">
 
   <h1 style="font-size:32px;font-weight:700;margin-bottom:28px;">
-    Employee Profile
+    My Profile
   </h1>
 
   <div style="
       background:#ffffff;
       border-radius:16px;
-      padding:28px;
+      padding:32px;
       box-shadow:0 4px 14px rgba(0,0,0,0.06);
   ">
 
-    <div style="display:flex;gap:20px;align-items:center;margin-bottom:24px;">
-      <div style="
-          width:64px;
-          height:64px;
-          border-radius:50%;
-          background:#3b82f6;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          color:white;
-          font-size:28px;
-          font-weight:600;
-      ">
-        {{ profile.full_name|slice:":1" }}
-      </div>
-
-      <div>
-        <div style="font-size:20px;font-weight:700;">
+    <!-- NAME DISPLAY -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <div
+        id="nameText"
+        style="font-size:22px;font-weight:700;"
+      >
+        {% if profile.full_name %}
           {{ profile.full_name }}
-        </div>
-        <div style="color:#64748b;">
-          {{ profile.user.email }}
-        </div>
-      </div>
-    </div>
-
-    <hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;">
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;row-gap:16px;">
-      <div style="color:#64748b;">Designation</div>
-      <div style="font-weight:600;">{{ profile.designation }}</div>
-
-      <div style="color:#64748b;">Department</div>
-      <div style="font-weight:600;">{{ profile.department }}</div>
-
-      <div style="color:#64748b;">Reporting Manager</div>
-      <div style="font-weight:600;">
-        {% if profile.reporting_manager %}
-          {{ profile.reporting_manager.email }}
         {% else %}
-          —
+          {{ user.email }}
         {% endif %}
       </div>
 
-      <div style="color:#64748b;">Joined On</div>
-      <div style="font-weight:600;">
-        {{ profile.joined_on|date:"d M Y" }}
-      </div>
+      <!-- Pencil icon -->
+      <span
+        id="editNameBtn"
+        style="cursor:pointer;color:#3b82f6;font-size:16px;"
+        title="Edit name"
+      >
+        ✏️
+      </span>
     </div>
 
-    <p style="margin-top:24px;color:#64748b;font-size:14px;">
-      Profile editing will be enabled in a later module.
-    </p>
+    <!-- EMAIL (SECONDARY INFO) -->
+    <div style="color:#64748b;margin-bottom:20px;">
+      {{ user.email }}
+    </div>
+
+    <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb;">
+
+    <!-- EDIT FORM -->
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Hidden by default -->
+      <div id="nameInputWrapper" style="display:none;margin-bottom:20px;">
+        <label style="display:block;font-size:13px;font-weight:600;color:#475569;margin-bottom:6px;">
+          Full Name
+        </label>
+        <input
+          type="text"
+          name="full_name"
+          value="{{ profile.full_name }}"
+          placeholder="Enter your name"
+          style="
+            width:100%;
+            padding:12px 14px;
+            border-radius:10px;
+            border:1px solid #e5e7eb;
+            font-size:14px;
+          "
+          required
+        >
+      </div>
+
+      <!-- EMAIL (READ ONLY) -->
+      <div style="margin-bottom:28px;">
+        <label style="display:block;font-size:13px;font-weight:600;color:#475569;margin-bottom:6px;">
+          Email
+        </label>
+        <input
+          type="email"
+          value="{{ user.email }}"
+          disabled
+          style="
+            width:100%;
+            padding:12px 14px;
+            border-radius:10px;
+            border:1px solid #e5e7eb;
+            background:#f8fafc;
+            color:#94a3b8;
+            font-size:14px;
+          "
+        >
+      </div>
+
+      <button
+        id="saveBtn"
+        type="submit"
+        class="primary-btn"
+        style="padding:12px 20px;display:none;"
+      >
+        Save Changes
+      </button>
+    </form>
 
   </div>
 
 </div>
+
+<!-- SIMPLE JS -->
+<script>
+  const editBtn = document.getElementById("editNameBtn");
+  const inputWrapper = document.getElementById("nameInputWrapper");
+  const saveBtn = document.getElementById("saveBtn");
+
+  editBtn.addEventListener("click", () => {
+    inputWrapper.style.display = "block";
+    saveBtn.style.display = "inline-block";
+  });
+</script>
+
 {% endblock %}

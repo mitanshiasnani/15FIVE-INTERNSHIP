@@ -100,15 +100,17 @@
     Check-In History
 </a>
 
-<a href="#" class="nav-link">
+<a href="{% url 'admin_seetings' %}"
+   class="nav-link {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
     Settings
 </a>
 
 
-        <div class="sidebar-footer mt-4">
+
+        <!-- <div class="sidebar-footer mt-4">
             <strong>{{ request.user.email }}</strong><br>
             <a href="{% url 'logout' %}" class="nav-link mt-2">Logout</a>
-        </div>
+        </div> -->
 
     </aside>
 

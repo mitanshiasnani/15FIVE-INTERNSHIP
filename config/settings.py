@@ -11,9 +11,19 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file explicitly
+load_dotenv(BASE_DIR / ".env")
+
+# Slack credentials
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
+# SLACK_SIGNING_SECRET = os.getenv("SLACK_SIGNING_SECRET")
+
 
 
 # Quick-start development settings - unsuitable for production

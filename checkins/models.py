@@ -17,25 +17,41 @@ class Question(models.Model):
         return self.question_text[:50]
 
 
+
+from django.db import models
+from django.conf import settings
+from datetime import timedelta
+from django.utils.dateparse import parse_date
+
+from django.db import models
+from django.conf import settings
+from datetime import timedelta
+
 class CheckInForm(models.Model):
-    PERIOD_CHOICES = (
-        ('WEEKLY', 'Weekly'),
-        ('MONTHLY', 'Monthly'),
-    )
+    PERIOD_CHOICES = [
+        ("WEEKLY", "Weekly"),
+        ("MONTHLY", "Monthly"),
+    ]
 
     title = models.CharField(max_length=255)
-    period = models.CharField(max_length=10, choices=PERIOD_CHOICES)
-    deadline = models.DateTimeField()
+    period = models.CharField(max_length=20, choices=PERIOD_CHOICES)
+
+    start_date = models.DateField()
+    end_date = models.DateField()
+
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        limit_choices_to={'role': 'ADMIN'}
+        related_name="created_checkins"
     )
-    is_active = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
+
+
+
 
 
 class CheckInFormQuestion(models.Model):
@@ -48,27 +64,33 @@ class CheckInFormQuestion(models.Model):
 
 class CheckInAssignment(models.Model):
     STATUS_CHOICES = (
-        ("PENDING", "Pending"),
+        ("PENDING", "Pending"),          # Not started
+        ("PARTIAL", "Partially Filled"), # Draft saved
         ("SUBMITTED", "Submitted"),
-    )
-
-    REVIEW_CHOICES = (
-        ("PENDING", "Pending Review"),
-        ("REVIEWED", "Reviewed"),
     )
 
     employee = models.ForeignKey(User, on_delete=models.CASCADE)
     checkin_form = models.ForeignKey(CheckInForm, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
-    review_status = models.CharField(
+    status = models.CharField(
         max_length=20,
-        choices=REVIEW_CHOICES,
+        choices=STATUS_CHOICES,
         default="PENDING"
     )
-    assigned_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.employee.email} - {self.checkin_form.title}"
+    review_status = models.CharField(
+        max_length=20,
+        choices=(
+            ("PENDING", "Pending Review"),
+            ("REVIEWED", "Reviewed"),
+        ),
+        default="PENDING"
+    )
+
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+
+
+
 
 
     

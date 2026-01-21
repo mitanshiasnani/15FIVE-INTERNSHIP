@@ -22,6 +22,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        cursor: pointer;
     }
 
     .stat-number {
@@ -61,31 +62,6 @@
         margin-bottom: 20px;
         color: #0f172a;
     }
-
-    .activity-item {
-        display: flex;
-        gap: 12px;
-        padding: 14px 0;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .activity-dot {
-        width: 10px;
-        height: 10px;
-        background: #3b82f6;
-        border-radius: 50%;
-        margin-top: 6px;
-    }
-
-    .activity-text {
-        font-weight: 600;
-        color: #0f172a;
-    }
-
-    .activity-time {
-        font-size: 14px;
-        color: #64748b;
-    }
 </style>
 
 <!-- HEADER -->
@@ -96,42 +72,66 @@
 
 <!-- STATS -->
 <div class="row g-4">
+
+    <!-- ✅ TOTAL EMPLOYEES (CLICKABLE) -->
     <div class="col-md-6">
-        <div class="stat-card">
-            <div>
-                <div class="stat-label">Total Employees</div>
-                <div class="stat-number">{{ total_employees }}</div>
-                <div class="stat-label">Active team members</div>
+        <a href="{% url 'employee_list' %}" style="text-decoration:none;color:inherit;">
+            <div class="stat-card">
+                <div>
+                    <div class="stat-label">Total Employees</div>
+                    <div class="stat-number">{{ total_employees }}</div>
+                    <div class="stat-label">Active team members</div>
+                </div>
+                <div class="icon-box">👥</div>
             </div>
-            <div class="icon-box">👥</div>
-        </div>
+        </a>
     </div>
 
+    <!-- TOTAL CHECK-INS (UNCHANGED) -->
     <div class="col-md-6">
         <div class="stat-card">
             <div>
                 <div class="stat-label">Total Check-ins</div>
                 <div class="stat-number">{{ total_checkins }}</div>
-                <div class="stat-label">Completed this month</div>
+                <div class="stat-label">Created so far</div>
             </div>
             <div class="icon-box">📋</div>
         </div>
     </div>
+
 </div>
 
-<!-- RECENT ACTIVITY -->
+<!-- CHECK-IN STATUS OVERVIEW -->
 <div class="activity-card">
-    <div class="activity-title">📈 Recent Activity</div>
+    <div class="activity-title">📊 Check-In Status Overview</div>
 
-    {% for activity in recent_activities %}
-    <div class="activity-item">
-        <div class="activity-dot"></div>
-        <div>
-            <div class="activity-text">{{ activity.text }}</div>
-            <div class="activity-time">{{ activity.time }}</div>
+    <div class="row text-center">
+        <div class="col-md-3">
+            <div class="stat-number">{{ total_assigned }}</div>
+            <div class="stat-label">Assigned</div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-number" style="color:#16a34a;">
+                {{ submitted }}
+            </div>
+            <div class="stat-label">Submitted</div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-number" style="color:#f59e0b;">
+                {{ pending }}
+            </div>
+            <div class="stat-label">Pending Review</div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-number" style="color:#2563eb;">
+                {{ reviewed }}
+            </div>
+            <div class="stat-label">Reviewed</div>
         </div>
     </div>
-    {% endfor %}
 </div>
 
 {% endblock %}

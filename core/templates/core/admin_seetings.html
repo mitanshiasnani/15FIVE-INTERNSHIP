@@ -1,0 +1,25 @@
+{% extends "core/admin_base.html" %}
+
+{% block title %}Admin Settings{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 520px;">
+
+    <h1 class="fw-bold mb-4">Admin Settings</h1>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <p class="mb-3">
+                Logged in as <strong>{{ request.user.email }}</strong>
+            </p>
+
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100">
+                Logout
+            </a>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

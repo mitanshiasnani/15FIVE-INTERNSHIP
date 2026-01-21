@@ -10,6 +10,7 @@ from .views import (
     employee_history,
     employee_settings,
     employee_profile,
+    admin_settings,
 )
 
 urlpatterns = [
@@ -26,4 +27,6 @@ urlpatterns = [
     path('employee/history/', employee_history, name='employee_history'),
     path('employee/settings/', employee_settings, name='employee_settings'),
     path('employee/profile/', employee_profile, name='employee_profile'),
+    path("admin/settings/", admin_settings, name="admin_seetings"),
+
 ]

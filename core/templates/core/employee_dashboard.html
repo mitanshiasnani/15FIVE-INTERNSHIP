@@ -24,19 +24,30 @@
                 <div class="checkin-icon warning">⏰</div>
                 <div>
                     <div class="checkin-title">
-                        {{ assignment.checkin_form.title }}
+                        {{ assignment.checkin_form.start_date|date:"d M Y" }}
+                        →
+                        {{ assignment.checkin_form.end_date|date:"d M Y" }}
                     </div>
                     <div class="checkin-date">
-                        Due {{ assignment.checkin_form.deadline|date:"M d, Y" }}
+                        {{ assignment.checkin_form.title }}
                     </div>
                 </div>
             </div>
 
             <div class="checkin-right">
-                <span class="badge pending">Pending</span>
+                {% if assignment.status == "PARTIAL" %}
+                    <span class="badge in-progress">Partially Filled</span>
+                {% else %}
+                    <span class="badge pending">Pending</span>
+                {% endif %}
+
                 <a href="{% url 'employee_checkin_form' assignment.id %}"
                    class="primary-btn">
-                    Submit
+                    {% if assignment.status == "PARTIAL" %}
+                        Continue
+                    {% else %}
+                        Submit
+                    {% endif %}
                 </a>
             </div>
         </div>
@@ -54,16 +65,24 @@
                 <div class="checkin-icon success">✓</div>
                 <div>
                     <div class="checkin-title">
-                        {{ assignment.checkin_form.title }}
+                        {{ assignment.checkin_form.start_date|date:"d M Y" }}
+                        →
+                        {{ assignment.checkin_form.end_date|date:"d M Y" }}
                     </div>
                     <div class="checkin-date">
-                        Due {{ assignment.checkin_form.deadline|date:"M d, Y" }}
+                        {{ assignment.checkin_form.title }}
                     </div>
                 </div>
             </div>
 
             <div class="checkin-right">
                 <span class="badge submitted">Submitted</span>
+
+                <!-- ✅ VIEW BUTTON -->
+                <a href="{% url 'employee_checkin_form' assignment.id %}"
+                   class="primary-btn outline">
+                    View
+                </a>
             </div>
         </div>
     {% endfor %}

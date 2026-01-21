@@ -1,27 +1,35 @@
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+from django.contrib import messages
+from django.contrib.auth import authenticate, logout
 
 from accounts.models import User, EmployeeProfile
-from checkins.models import CheckInAssignment, Question
+from checkins.models import CheckInAssignment, Question, CheckInForm
+from django.db.models import Exists, OuterRef
+from checkins.models import CheckInAnswer
 
 
 # ================= ADMIN VIEWS =================
 
 @login_required
 def admin_dashboard(request):
+    # Access control (UNCHANGED)
     if not request.user.is_superuser and request.user.role != 'ADMIN':
         return redirect('employee_dashboard')
 
+    # Total employees (EMPLOYEE role only)
     total_employees = User.objects.filter(role='EMPLOYEE').count()
-    total_checkins = 247  # static for now
 
-    recent_activities = [
-        {"text": "New employee added: Sarah Johnson", "time": "2 hours ago"},
-        {"text": "Check-in completed by Michael Chen", "time": "5 hours ago"},
-        {"text": "Check-in completed by Emily Rodriguez", "time": "1 day ago"},
-        {"text": "New employee added: David Park", "time": "2 days ago"},
-    ]
+    # Total check-ins (created forms)
+    total_checkins = CheckInForm.objects.count()
+
+    # Check-in assignment status counts
+    total_assigned = CheckInAssignment.objects.count()
+    submitted = CheckInAssignment.objects.filter(status='SUBMITTED').count()
+    pending = CheckInAssignment.objects.filter(status='PENDING').count()
+    reviewed = CheckInAssignment.objects.filter(status='REVIEWED').count()
 
     return render(
         request,
@@ -29,7 +37,10 @@ def admin_dashboard(request):
         {
             "total_employees": total_employees,
             "total_checkins": total_checkins,
-            "recent_activities": recent_activities,
+            "total_assigned": total_assigned,
+            "submitted": submitted,
+            "pending": pending,
+            "reviewed": reviewed,
         }
     )
 
@@ -79,11 +90,12 @@ def employee_list(request):
     )
 
 
-
-
 # ================= EMPLOYEE VIEWS =================
 
-from django.utils import timezone
+from django.db.models import Exists, OuterRef
+
+from django.db.models import Exists, OuterRef
+from checkins.models import CheckInAssignment, CheckInAnswer
 
 @login_required
 def employee_dashboard(request):
@@ -94,13 +106,16 @@ def employee_dashboard(request):
         employee=request.user
     ).select_related('checkin_form')
 
-    submitted_checkins = assignments.filter(status='SUBMITTED')
-    pending_checkins = assignments.filter(status='PENDING')
+    submitted_checkins = assignments.filter(status="SUBMITTED")
+
+    pending_checkins = assignments.filter(
+        status__in=["PENDING", "PARTIAL"]
+    )
 
     context = {
         "submitted_count": submitted_checkins.count(),
         "pending_checkins": pending_checkins,
-        "submitted_checkins": submitted_checkins[:3],  # optional: recent ones
+        "submitted_checkins": submitted_checkins.order_by("-submitted_at")[:3],
     }
 
     return render(
@@ -108,7 +123,6 @@ def employee_dashboard(request):
         "core/employee_dashboard.html",
         context
     )
-
 
 
 
@@ -138,7 +152,6 @@ def employee_checkin_form(request, assignment_id):
 
     questions = Question.objects.all().order_by("id")
 
-    # ✅ Build a PROPER dictionary: {question_id: answer_text}
     existing_answers = {
         answer.question_id: answer.answer_text
         for answer in assignment.answers.all()
@@ -158,7 +171,6 @@ def employee_checkin_form(request, assignment_id):
     )
 
 
-
 @login_required
 def employee_history(request):
     if request.user.role != 'EMPLOYEE':
@@ -166,10 +178,6 @@ def employee_history(request):
 
     return render(request, "core/employee_history.html")
 
-from django.contrib.auth import authenticate, logout
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib import messages
 
 @login_required
 def employee_settings(request):
@@ -180,24 +188,19 @@ def employee_settings(request):
 
         user = request.user
 
-        # 1️⃣ Verify current password
         if not user.check_password(current_password):
             messages.error(request, "Current password is incorrect.")
             return redirect("employee_settings")
 
-        # 2️⃣ Validate new password match
         if new_password != confirm_password:
             messages.error(request, "New passwords do not match.")
             return redirect("employee_settings")
 
-        # 3️⃣ Update password
         user.set_password(new_password)
         user.save()
 
-        # 4️⃣ LOGOUT IMMEDIATELY (🔥 THIS IS THE KEY)
         logout(request)
 
-        # 5️⃣ Redirect to login page
         messages.success(
             request,
             "Password updated successfully. Please log in again."
@@ -206,25 +209,35 @@ def employee_settings(request):
 
     return render(request, "core/employee_settings.html")
 
-
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from accounts.models import EmployeeProfile
 
 @login_required
 def employee_profile(request):
-    if request.user.role != 'EMPLOYEE':
-        return redirect('admin_dashboard')
-
-    profile, created = EmployeeProfile.objects.get_or_create(
-        user=request.user,
-        defaults={
-            "full_name": request.user.email.split("@")[0],
-            "designation": "Software Engineer",
-            "department": "Engineering"
-        }
+    profile, _ = EmployeeProfile.objects.get_or_create(
+        user=request.user
     )
+
+    if request.method == "POST":
+        profile.full_name = request.POST.get("full_name", "").strip()
+        profile.save()
+        return redirect("employee_profile")
 
     return render(
         request,
         "core/employee_profile.html",
-        {"profile": profile}
+        {
+            "profile": profile
+        }
     )
 
+
+
+
+@login_required
+def admin_settings(request):
+    if request.user.role != "ADMIN":
+        return redirect("employee_dashboard")
+
+    return render(request, "core/admin_seetings.html")

@@ -115,7 +115,7 @@ textarea[readonly] {
 .footer {
   position: fixed;
   bottom: 0;
-  left: 240px;
+  left: 260px; /* ✅ FIXED sidebar overlap */
   right: 0;
   background: #ffffff;
   border-top: 1px solid var(--border);
@@ -164,12 +164,21 @@ textarea[readonly] {
     <div class="header">
       <h1>Check-In Form</h1>
       <div class="meta">
+
+        <!-- ✅ PERIOD AS DATE RANGE -->
         <div class="badge">
-          📅 Period: {{ assignment.checkin_form.period }}
+          📅 Period:
+          {{ assignment.checkin_form.start_date|date:"d M Y" }}
+          →
+          {{ assignment.checkin_form.end_date|date:"d M Y" }}
         </div>
+
+        <!-- ✅ DEADLINE = END DATE -->
         <div class="deadline">
-          ⏰ Deadline: {{ assignment.checkin_form.deadline|date:"l, F d, Y" }}
+          ⏰ Due by:
+          {{ assignment.checkin_form.end_date|date:"F d, Y" }}
         </div>
+
       </div>
     </div>
   
@@ -203,21 +212,23 @@ textarea[readonly] {
           {% endif %}
         </p>
   
-        {% if assignment.status == "PENDING" and not is_expired %}
-          <div class="actions">
-            <button type="submit" name="action" value="draft" class="btn">
-              💾 Save Draft
-            </button>
-  
-            <button type="submit" name="action" value="submit" class="btn btn-primary">
-              ✈ Submit Check-In
-            </button>
-          </div>
-        {% endif %}
+        {% if assignment.status != "SUBMITTED" and not is_expired %}
+  <div class="actions">
+    <button type="submit" name="action" value="draft" class="btn">
+      💾 Save Draft
+    </button>
+
+    <button type="submit" name="action" value="submit" class="btn btn-primary">
+      ✈ Submit Check-In
+    </button>
+  </div>
+{% endif %}
+
   
       </div>
     </div>
   
   </div>
-  </form>
-  {% endblock %}
+</form>
+
+{% endblock %}

@@ -1,7 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-
-
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    PermissionsMixin,
+    BaseUserManager
+)
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, role='EMPLOYEE'):
         if not email:
@@ -23,8 +25,6 @@ class UserManager(BaseUserManager):
         user.is_superuser = True
         user.save(using=self._db)
         return user
-
-
 class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = (
         ('ADMIN', 'Admin'),
@@ -46,8 +46,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-
-        
 class EmployeeProfile(models.Model):
     user = models.OneToOneField(
         User,
@@ -55,9 +53,12 @@ class EmployeeProfile(models.Model):
         related_name="employee_profile"
     )
 
-    full_name = models.CharField(max_length=100)
-    designation = models.CharField(max_length=100)
-    department = models.CharField(max_length=100)
+    # ✅ THIS IS THE NAME EMPLOYEE EDITS
+    full_name = models.CharField(max_length=100, blank=True)
+
+    # Optional (can be hidden in UI)
+    designation = models.CharField(max_length=100, blank=True)
+    department = models.CharField(max_length=100, blank=True)
 
     reporting_manager = models.ForeignKey(
         User,
@@ -69,6 +70,13 @@ class EmployeeProfile(models.Model):
 
     joined_on = models.DateField(auto_now_add=True)
 
-    def __str__(self):
-        return self.full_name
+    # Slack integration
+    slack_user_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Slack User ID (e.g. U06ABC123)"
+    )
 
+    def __str__(self):
+        return self.full_name or self.user.email
