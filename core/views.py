@@ -92,29 +92,42 @@ def employee_list(request):
 
 # ================= EMPLOYEE VIEWS =================
 
-from django.db.models import Exists, OuterRef
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from checkins.models import CheckInAssignment
 
-from django.db.models import Exists, OuterRef
-from checkins.models import CheckInAssignment, CheckInAnswer
 
 @login_required
 def employee_dashboard(request):
+    # 🔒 Block deactivated / removed employees
+    if not request.user.is_active:
+        return redirect("login")
+
+    # 🔐 Role safety
     if request.user.role != 'EMPLOYEE':
         return redirect('admin_dashboard')
 
-    assignments = CheckInAssignment.objects.filter(
-        employee=request.user
-    ).select_related('checkin_form')
+    # All assignments for this employee
+    assignments = (
+        CheckInAssignment.objects
+        .filter(employee=request.user)
+        .select_related('checkin_form')
+    )
 
+    # ✅ Submitted check-ins
     submitted_checkins = assignments.filter(status="SUBMITTED")
 
+    # ✅ Pending + Partially filled (DRAFT / PARTIAL)
     pending_checkins = assignments.filter(
         status__in=["PENDING", "PARTIAL"]
     )
 
     context = {
+        # KPI
         "submitted_count": submitted_checkins.count(),
-        "pending_checkins": pending_checkins,
+
+        # Dashboard sections
+        "pending_checkins": pending_checkins.order_by("assigned_at"),
         "submitted_checkins": submitted_checkins.order_by("-submitted_at")[:3],
     }
 
@@ -126,49 +139,158 @@ def employee_dashboard(request):
 
 
 
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from checkins.models import CheckInAssignment
+
+
 @login_required
 def employee_checkins(request):
+    # 🔒 Block deactivated / removed employees
+    if not request.user.is_active:
+        return redirect("login")
+
+    # 🔐 Role check
     if request.user.role != 'EMPLOYEE':
         return redirect('admin_dashboard')
 
-    assignments = CheckInAssignment.objects.filter(
-        employee=request.user
-    ).select_related('checkin_form')
+    # 📋 Fetch ALL assignments for this employee
+    assignments = (
+        CheckInAssignment.objects
+        .filter(employee=request.user)
+        .select_related('checkin_form')
+        .order_by("-assigned_at")
+    )
 
     return render(
         request,
         "core/employee_checkins.html",
-        {"assignments": assignments}
+        {
+            "assignments": assignments
+        }
     )
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render, redirect
+from django.utils import timezone
+
+from checkins.models import (
+    CheckInAssignment,
+    CheckInFormQuestion,
+    CheckInAnswer,
+)
+from checkins.services.slack import send_admin_all_submitted_dm
 
 
 @login_required
 def employee_checkin_form(request, assignment_id):
+    # 🔒 Block removed / inactive employees
+    if not request.user.is_active:
+        return redirect("login")
+
     assignment = get_object_or_404(
         CheckInAssignment,
         id=assignment_id,
         employee=request.user
     )
 
-    questions = Question.objects.all().order_by("id")
+    checkin_form = assignment.checkin_form
 
+    # ✅ ONLY questions selected for this check-in
+    questions = (
+        CheckInFormQuestion.objects
+        .filter(checkin_form=checkin_form)
+        .select_related("question")
+        .order_by("id")
+    )
+
+    # ✅ Expiry check (NO deadline usage)
+    today = timezone.now().date()
+    is_expired = today > checkin_form.end_date
+
+    if request.method == "POST":
+        if is_expired:
+            return redirect("employee_dashboard")
+
+        action = request.POST.get("action")
+
+        has_any_answer = False
+
+        # 💾 Save answers
+        for fq in questions:
+            text = request.POST.get(
+                f"question_{fq.question.id}", ""
+            ).strip()
+
+            if text:
+                has_any_answer = True
+
+            CheckInAnswer.objects.update_or_create(
+                assignment=assignment,
+                question=fq.question,
+                defaults={
+                    "employee": request.user,
+                    "answer_text": text
+                }
+            )
+
+        # 📝 SAVE DRAFT
+        if action == "draft":
+            if has_any_answer:
+                assignment.status = "PARTIAL"
+                assignment.save()
+
+        # ✅ SUBMIT CHECK-IN
+        elif action == "submit":
+            assignment.status = "SUBMITTED"
+            assignment.submitted_at = timezone.now()
+            assignment.save()
+
+            # 🔔 Notify admin if ALL employees submitted
+            total = CheckInAssignment.objects.filter(
+                checkin_form=checkin_form
+            ).count()
+
+            submitted = CheckInAssignment.objects.filter(
+                checkin_form=checkin_form,
+                status="SUBMITTED"
+            ).count()
+
+            if total == submitted:
+                admin = checkin_form.created_by
+                profile = getattr(admin, "employeeprofile", None)
+
+                if profile and profile.slack_user_id:
+                    send_admin_all_submitted_dm(
+                        slack_user_id=profile.slack_user_id,
+                        title=checkin_form.title,
+                        start_date=checkin_form.start_date,
+                        end_date=checkin_form.end_date
+                    )
+
+        return redirect("employee_dashboard")
+
+    # 🧠 Existing answers for prefill
     existing_answers = {
-        answer.question_id: answer.answer_text
-        for answer in assignment.answers.all()
-    }
-
-    context = {
-        "assignment": assignment,
-        "questions": questions,
-        "existing_answers": existing_answers,
-        "is_expired": assignment.checkin_form.deadline.date() < timezone.now().date(),
+        a.question_id: a.answer_text
+        for a in assignment.answers.all()
     }
 
     return render(
         request,
         "checkins/employee_checkin_form.html",
-        context
+        {
+            "assignment": assignment,
+            "questions": questions,
+            "existing_answers": existing_answers,
+            "is_expired": is_expired,
+            "period": f"{checkin_form.start_date} → {checkin_form.end_date}",
+        }
     )
+
 
 
 @login_required
@@ -213,15 +335,33 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from accounts.models import EmployeeProfile
 
+
 @login_required
 def employee_profile(request):
+    # 🔒 Block deactivated / removed employees
+    if not request.user.is_active:
+        return redirect("login")
+
+    # 🔐 Role safety (extra protection)
+    if request.user.role != "EMPLOYEE":
+        return redirect("admin_dashboard")
+
+    # Ensure profile exists
     profile, _ = EmployeeProfile.objects.get_or_create(
-        user=request.user
+        user=request.user,
+        defaults={
+            "full_name": request.user.email.split("@")[0]
+        }
     )
 
+    # ✏️ Update full name
     if request.method == "POST":
-        profile.full_name = request.POST.get("full_name", "").strip()
-        profile.save()
+        full_name = request.POST.get("full_name", "").strip()
+
+        if full_name:
+            profile.full_name = full_name
+            profile.save()
+
         return redirect("employee_profile")
 
     return render(
@@ -241,3 +381,24 @@ def admin_settings(request):
         return redirect("employee_dashboard")
 
     return render(request, "core/admin_seetings.html")
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from accounts.models import User
+
+@login_required
+def remove_employee(request, user_id):
+    if request.user.role != "ADMIN":
+        return redirect("admin_dashboard")
+
+    employee = get_object_or_404(User, id=user_id, role="EMPLOYEE")
+
+    # Soft delete
+    employee.is_active = False
+    employee.save()
+
+    messages.success(request, "Employee removed successfully.")
+
+    return redirect("employee_list")

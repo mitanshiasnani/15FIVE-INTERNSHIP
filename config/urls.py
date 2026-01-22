@@ -3,15 +3,16 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    # Django Admin (reserved)
+    # Django Admin
     path('admin/', admin.site.urls),
 
-    # Auth (login, logout)
+    # Authentication
     path('', include('accounts.urls')),
 
-    # Admin Dashboard (custom)
+    # Core dashboard
     path('dashboard/', include('core.urls')),
 
-    # Employee check-ins
-    path('', include('checkins.urls')),
+    # Check-ins (MUST have prefix)
+    path('checkins/', include('checkins.urls')),
 ]
+

@@ -1,70 +1,60 @@
+# checkins/services/slack.py
+
+import os
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
-from django.conf import settings
-import logging
 
-logger = logging.getLogger(__name__)
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 
-client = WebClient(token=settings.SLACK_BOT_TOKEN)
+if not SLACK_BOT_TOKEN:
+    raise RuntimeError("❌ SLACK_BOT_TOKEN not set")
+
+client = WebClient(token=SLACK_BOT_TOKEN)
+
+print("🔥 SLACK SERVICE LOADED")
 
 
-# --------------------------------------------------
-# INTERNAL HELPER
-# --------------------------------------------------
-def _send_dm(slack_user_id, text):
-    if not slack_user_id:
-        logger.warning("Slack user ID missing — DM not sent")
-        return
-
+# -------------------------------------------------
+# EMPLOYEE: Check-in assigned DM
+# -------------------------------------------------
+def send_checkin_assigned_dm(slack_user_id, title, start_date, end_date):
     try:
-        response = client.conversations_open(users=[slack_user_id])
-        channel_id = response["channel"]["id"]
+        print(f"📩 Slack DM attempt → {slack_user_id}")
 
-        client.chat_postMessage(
-            channel=channel_id,
-            text=text
+        response = client.chat_postMessage(
+            channel=slack_user_id,
+            text=(
+                f"📝 *New Check-In Assigned*\n\n"
+                f"*{title}*\n"
+                f"📅 {start_date} → {end_date}\n\n"
+                f"Please complete it before the deadline."
+            )
         )
 
+        print("✅ Slack DM SENT:", response["ts"])
+
     except SlackApiError as e:
-        logger.error(f"Slack DM failed: {e.response['error']}")
+        print("❌ Slack DM FAILED:", e.response["error"])
 
 
-# --------------------------------------------------
-# EMPLOYEE: CHECK-IN ASSIGNED
-# --------------------------------------------------
-def send_checkin_assigned_dm(slack_user_id, title, start_date, end_date):
-    message = (
-        f"📝 *New Check-In Assigned*\n\n"
-        f"*Title:* {title}\n"
-        f"*Period:* {start_date} → {end_date}\n\n"
-        f"Please complete it on the portal."
-    )
-
-    _send_dm(slack_user_id, message)
-
-
-# --------------------------------------------------
-# ADMIN: ALL EMPLOYEES SUBMITTED
-# --------------------------------------------------
+# -------------------------------------------------
+# ADMIN: All employees submitted
+# -------------------------------------------------
 def send_admin_all_submitted_dm(slack_user_id, title, start_date, end_date):
-    message = (
-        f"✅ *All Check-Ins Submitted*\n\n"
-        f"*Title:* {title}\n"
-        f"*Period:* {start_date} → {end_date}\n\n"
-        f"All employees have completed their check-in."
-    )
+    try:
+        print(f"📩 Admin Slack DM → {slack_user_id}")
 
-    _send_dm(slack_user_id, message)
+        response = client.chat_postMessage(
+            channel=slack_user_id,
+            text=(
+                f"✅ *All Check-Ins Submitted*\n\n"
+                f"*{title}*\n"
+                f"📅 {start_date} → {end_date}\n\n"
+                f"All employees have submitted their check-in."
+            )
+        )
 
+        print("✅ Admin Slack DM SENT:", response["ts"])
 
-# --------------------------------------------------
-# EMPLOYEE: CHECK-IN REVIEWED
-# --------------------------------------------------
-def send_checkin_reviewed_dm(slack_user_id, title):
-    message = (
-        f"✅ *Check-In Reviewed*\n\n"
-        f"Your check-in *{title}* has been reviewed by the admin.\n\n"
-        f"Thank you for submitting on time 🙌"
-    )
-
-    _send_dm(slack_user_id, message)
+    except SlackApiError as e:
+        print("❌ Admin Slack DM FAILED:", e.response["error"])
