@@ -132,3 +132,4 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 AUTH_USER_MODEL = 'accounts.User'
+ADMIN_SLACK_USER_ID = "U0A64KK3XTR"

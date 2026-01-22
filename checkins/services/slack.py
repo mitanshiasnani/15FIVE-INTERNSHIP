@@ -58,3 +58,28 @@ def send_admin_all_submitted_dm(slack_user_id, title, start_date, end_date):
 
     except SlackApiError as e:
         print("❌ Admin Slack DM FAILED:", e.response["error"])
+
+
+def send_admin_all_submitted_dm(*, title, start_date, end_date):
+    from django.conf import settings
+
+    admin_slack_user_id = settings.ADMIN_SLACK_USER_ID  # you will add this
+
+    if not admin_slack_user_id:
+        print("⚠️ ADMIN_SLACK_USER_ID not set")
+        return
+
+    message = (
+        "✅ *All Check-Ins Submitted*\n\n"
+        f"*{title}*\n"
+        f"📅 {start_date} → {end_date}\n\n"
+        "All employees have submitted their responses."
+    )
+
+    client.chat_postMessage(
+        channel=admin_slack_user_id,
+        text=message
+    )
+
+    print("📢 ADMIN SLACK DM SENT")
+

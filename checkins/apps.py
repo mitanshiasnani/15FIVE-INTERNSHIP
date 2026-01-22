@@ -6,3 +6,4 @@ class CheckinsConfig(AppConfig):
 
     def ready(self):
         import checkins.signals
+

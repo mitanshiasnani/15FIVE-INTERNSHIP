@@ -64,13 +64,10 @@ def create_checkin(request):
 
     if request.method == "POST":
         period = request.POST.get("period")
-
         start_date = timezone.datetime.strptime(
-            request.POST.get("start_date"),
-            "%Y-%m-%d"
+            request.POST.get("start_date"), "%Y-%m-%d"
         ).date()
 
-        # AUTO END DATE (unchanged logic)
         if period == "WEEKLY":
             end_date = start_date + timedelta(days=5)
         else:
@@ -78,7 +75,6 @@ def create_checkin(request):
                 day=monthrange(start_date.year, start_date.month)[1]
             )
 
-        # CREATE CHECK-IN
         checkin = CheckInForm.objects.create(
             title=f"{period.capitalize()} Check-In",
             period=period,
@@ -87,35 +83,29 @@ def create_checkin(request):
             created_by=request.user,
         )
 
-        # RESET QUESTIONS
-        CheckInFormQuestion.objects.filter(
-            checkin_form=checkin
-        ).delete()
+        # QUESTIONS
+        CheckInFormQuestion.objects.filter(checkin_form=checkin).delete()
 
         for q_id in request.POST.getlist("questions"):
             CheckInFormQuestion.objects.create(
                 checkin_form=checkin,
-                question_id=q_id,
+                question_id=q_id
             )
 
         for text in request.POST.getlist("custom_questions[]"):
-            text = text.strip()
-            if text:
+            if text.strip():
                 q = Question.objects.create(
-                    question_text=text,
+                    question_text=text.strip(),
                     is_default=False,
-                    created_by=request.user,
+                    created_by=request.user
                 )
                 CheckInFormQuestion.objects.create(
                     checkin_form=checkin,
-                    question=q,
+                    question=q
                 )
 
-        # ASSIGN + SLACK
-        employees = User.objects.filter(
-            role="EMPLOYEE",
-            is_active=True
-        )
+        # ASSIGN ONLY (NO SLACK)
+        employees = User.objects.filter(role="EMPLOYEE", is_active=True)
 
         for emp in employees:
             CheckInAssignment.objects.create(
@@ -125,32 +115,10 @@ def create_checkin(request):
                 review_status="PENDING",
             )
 
-            # IMPORTANT: correct related_name
-            profile = getattr(emp, "employee_profile", None)
-
-            print(
-                "EMP:", emp.email,
-                "| PROFILE:", bool(profile),
-                "| SLACK:", getattr(profile, "slack_user_id", None),
-            )
-
-            if profile and profile.slack_user_id:
-                print("🚀 Sending Slack DM →", emp.email)
-
-                send_checkin_assigned_dm(
-                    slack_user_id=profile.slack_user_id,
-                    title=checkin.title,
-                    start_date=start_date,
-                    end_date=end_date,
-                )
-
         return redirect("admin_checkins_list")
 
-    return render(
-        request,
-        "checkins/create_checkin.html",
-        {"questions": questions},
-    )
+    return render(request, "checkins/create_checkin.html", {"questions": questions})
+
 
 
 
