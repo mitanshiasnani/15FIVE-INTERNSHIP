@@ -3,7 +3,6 @@
 {% block title %}Check-In Review{% endblock %}
 
 {% block content %}
-
 <div class="page">
 
   <h1>Check-In Review</h1>
@@ -15,25 +14,40 @@
     {% for ans in answers %}
       <div class="mb-3">
         <h6>{{ forloop.counter }}. {{ ans.question.question_text }}</h6>
-        <textarea class="form-control" rows="3" readonly>
-{{ ans.answer_text }}
-        </textarea>
+        <textarea class="form-control" rows="3" readonly>{{ ans.answer_text }}</textarea>
       </div>
     {% endfor %}
   </div>
 
-  <!-- ✅ REVIEW ACTION -->
   {% if assignment.review_status != "REVIEWED" %}
     <form method="post">
       {% csrf_token %}
+
+      <!-- ✅ ADMIN COMMENT -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Admin Comment</label>
+        <textarea
+          name="admin_comment"
+          class="form-control"
+          rows="3"
+          placeholder="Write feedback for the employee..."
+        >{{ assignment.admin_comment }}</textarea>
+      </div>
+
       <button type="submit" class="btn btn-success">
         Mark as Reviewed
       </button>
     </form>
+
   {% else %}
-    <span class="badge bg-success fs-6">
-      Reviewed ✔
-    </span>
+    <span class="badge bg-success fs-6">Reviewed ✔</span>
+
+    {% if assignment.admin_comment %}
+      <div class="alert alert-info mt-3">
+        <strong>Admin Comment:</strong><br>
+        {{ assignment.admin_comment }}
+      </div>
+    {% endif %}
   {% endif %}
 
 </div>

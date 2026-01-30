@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.DisableCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -133,3 +134,22 @@ STATICFILES_DIRS = [
 ]
 AUTH_USER_MODEL = 'accounts.User'
 ADMIN_SLACK_USER_ID = "U0A64KK3XTR"
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "mitanshiasnani.todoit@gmail.com"
+EMAIL_HOST_PASSWORD = "usxcskdssqqivssw"
+
+DEFAULT_FROM_EMAIL = "ToDo IT <mitanshiasnani.todoit@gmail.com>"
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/redirect/'
+LOGOUT_REDIRECT_URL = '/login/'
+
+

@@ -11,6 +11,10 @@ class Question(models.Model):
         limit_choices_to={'role': 'ADMIN'}
     )
     is_default = models.BooleanField(default=False)
+
+    # ✅ NEW (soft delete)
+    is_active = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -71,7 +75,13 @@ class CheckInAssignment(models.Model):
     )
 
     employee = models.ForeignKey(User, on_delete=models.CASCADE)
-    checkin_form = models.ForeignKey(CheckInForm, on_delete=models.CASCADE)
+
+    checkin_form = models.ForeignKey(
+        CheckInForm,
+        on_delete=models.CASCADE,
+        related_name="assignments"
+    )
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -87,11 +97,20 @@ class CheckInAssignment(models.Model):
         default="PENDING"
     )
 
+    # ✅ ADMIN FEEDBACK
+    admin_comment = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    # ✅ REVIEW TIMESTAMP
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
     assigned_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
-
-
-
 
 
     

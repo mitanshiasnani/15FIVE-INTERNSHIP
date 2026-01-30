@@ -11,7 +11,8 @@ from .views import (
     employee_settings,
     employee_profile,
     admin_settings,
-    remove_employee
+    remove_employee,
+    admin_employee_checkins,
 )
 
 urlpatterns = [
@@ -40,5 +41,13 @@ urlpatterns = [
     path("employee/settings/", employee_settings, name="employee_settings"),
     path("employee/profile/", employee_profile, name="employee_profile"),
     path("admin/settings/", admin_settings, name="admin_seetings"),
+    path(
+    "employees/<int:user_id>/checkins/",
+    admin_employee_checkins,
+    name="admin_employee_checkins"
+),
+# path("logout/", logout_view, name="logout"),
+
+
 ]
 

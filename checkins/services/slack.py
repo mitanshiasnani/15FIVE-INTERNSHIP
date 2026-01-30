@@ -15,7 +15,7 @@ print("🔥 SLACK SERVICE LOADED")
 
 
 # -------------------------------------------------
-# EMPLOYEE: Check-in assigned DM
+# EMPLOYEE: Check-in assigned DM (UNCHANGED)
 # -------------------------------------------------
 def send_checkin_assigned_dm(slack_user_id, title, start_date, end_date):
     try:
@@ -38,7 +38,7 @@ def send_checkin_assigned_dm(slack_user_id, title, start_date, end_date):
 
 
 # -------------------------------------------------
-# ADMIN: All employees submitted
+# ADMIN: All employees submitted (UNCHANGED)
 # -------------------------------------------------
 def send_admin_all_submitted_dm(slack_user_id, title, start_date, end_date):
     try:
@@ -60,26 +60,38 @@ def send_admin_all_submitted_dm(slack_user_id, title, start_date, end_date):
         print("❌ Admin Slack DM FAILED:", e.response["error"])
 
 
-def send_admin_all_submitted_dm(*, title, start_date, end_date):
-    from django.conf import settings
+# -------------------------------------------------
+# EMPLOYEE: Admin reviewed check-in (NEW, SAFE)
+# -------------------------------------------------
+# def send_admin_reviewed_dm(slack_user_id, period, admin_comment):
+#     try:
+#         response = client.chat_postMessage(
+#             channel=slack_user_id,
+#             text=(
+#                 f"✅ *Your Check-In Has Been Reviewed*\n\n"
+#                 f"*Period:* {period}\n\n"
+#                 f"*Admin Comment:*\n"
+#                 f"{admin_comment or 'No comment provided.'}"
+#             )
+#         )
 
-    admin_slack_user_id = settings.ADMIN_SLACK_USER_ID  # you will add this
+#         print("✅ Review Slack DM SENT:", response["ts"])
 
-    if not admin_slack_user_id:
-        print("⚠️ ADMIN_SLACK_USER_ID not set")
-        return
+#     except SlackApiError as e:
+#         print("❌ Review Slack DM FAILED:", e.response["error"])
 
-    message = (
-        "✅ *All Check-Ins Submitted*\n\n"
-        f"*{title}*\n"
-        f"📅 {start_date} → {end_date}\n\n"
-        "All employees have submitted their responses."
-    )
+def send_admin_reviewed_dm(slack_user_id, title, start_date, end_date, comment):
+    try:
+        client.chat_postMessage(
+            channel=slack_user_id,
+            text=(
+                "🟢 *Check-In Reviewed*\n\n"
+                f"*{title}*\n"
+                f"📅 {start_date} → {end_date}\n\n"
+                f"*Admin Comment:*\n{comment or 'No comment provided.'}"
+            )
+        )
+        print("✅ Review DM sent to employee")
 
-    client.chat_postMessage(
-        channel=admin_slack_user_id,
-        text=message
-    )
-
-    print("📢 ADMIN SLACK DM SENT")
-
+    except SlackApiError as e:
+        print("❌ Review DM failed:", e.response["error"])

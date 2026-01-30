@@ -27,15 +27,9 @@
                     </select>
                 </div>
 
-                <!-- ✅ START DATE (system controls full period) -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Start Date</label>
-                    <input
-                        type="date"
-                        name="start_date"
-                        class="form-control"
-                        required
-                    >
+                    <input type="date" name="start_date" class="form-control" required>
                 </div>
             </div>
         </div>
@@ -44,33 +38,39 @@
     <!-- ================= QUESTIONS ================= -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <h5 class="fw-semibold mb-4">Questions</h5>
+
+            <!-- Header + Select All button (design preserved) -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-semibold mb-0">Questions</h5>
+
+                <button
+                    type="button"
+                    id="selectAllQuestionsBtn"
+                    class="btn btn-sm btn-outline-primary"
+                    onclick="toggleSelectAllQuestions()"
+                >
+                    Select All
+                </button>
+            </div>
 
             {% if error %}
-                <div class="alert alert-danger">
-                    {{ error }}
-                </div>
+                <div class="alert alert-danger">{{ error }}</div>
             {% endif %}
 
+            <!-- Default Questions -->
             {% for q in questions %}
-                <div class="form-check mb-3">
-                    <input
-                        class="form-check-input"
-                        type="checkbox"
-                        name="questions"
-                        value="{{ q.id }}"
-                        id="question_{{ q.id }}"
-                    >
-                    <label
-                        class="form-check-label fw-medium"
-                        for="question_{{ q.id }}"
-                        style="color:#000;"
-                    >
-                        {{ q.question_text }}
-                    </label>
-                </div>
-            {% empty %}
-                <p class="text-muted">No default questions available.</p>
+            <div class="form-check mb-3">
+                <input
+                    class="form-check-input question-checkbox"
+                    type="checkbox"
+                    name="questions"
+                    value="{{ q.id }}"
+                    id="question_{{ q.id }}"
+                >
+                <label class="form-check-label fw-medium" for="question_{{ q.id }}">
+                    {{ q.question_text }}
+                </label>
+            </div>
             {% endfor %}
 
             <!-- Custom Questions -->
@@ -95,13 +95,38 @@
             Send Check-In
         </button>
     </div>
-
 </form>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
+/* ================= SELECT ALL QUESTIONS ================= */
+
+function toggleSelectAllQuestions() {
+    const checkboxes = document.querySelectorAll('.question-checkbox');
+    const button = document.getElementById('selectAllQuestionsBtn');
+
+    if (!checkboxes.length) return;
+
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+    checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+    });
+
+    button.textContent = allChecked ? 'Select All' : 'Unselect All';
+}
+
+/* Reset button text if user manually changes any checkbox */
+document.addEventListener('change', function (e) {
+    if (e.target.classList.contains('question-checkbox')) {
+        document.getElementById('selectAllQuestionsBtn').textContent = 'Select All';
+    }
+});
+
+/* ================= CUSTOM QUESTIONS ================= */
+
 function addQuestion() {
     const container = document.getElementById('custom-questions');
 
@@ -112,7 +137,7 @@ function addQuestion() {
         <input
             type="text"
             name="custom_questions[]"
-            class="form-control"
+            class="form-control question-checkbox"
             placeholder="Enter custom question"
             required
         >
@@ -120,9 +145,7 @@ function addQuestion() {
             type="button"
             class="btn btn-outline-danger"
             onclick="this.parentElement.remove()"
-        >
-            ✕
-        </button>
+        >✕</button>
     `;
 
     container.appendChild(wrapper);

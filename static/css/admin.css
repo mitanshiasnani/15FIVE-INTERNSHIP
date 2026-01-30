@@ -1,0 +1,49 @@
+/* =================================
+   ADMIN – CHECK-IN HISTORY MOBILE FIX
+   (Desktop design untouched)
+   ================================= */
+
+   @media (max-width: 768px) {
+
+    .admin-panel .table thead {
+      display: none;
+    }
+  
+    .admin-panel .table,
+    .admin-panel .table tbody,
+    .admin-panel .table tr,
+    .admin-panel .table td {
+      display: block;
+      width: 100%;
+    }
+  
+    .admin-panel .table tr {
+      background: #fff;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+  
+    .admin-panel .table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border: none;
+      text-align: right;
+      font-size: 14px;
+    }
+  
+    .admin-panel .table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: #555;
+      text-align: left;
+    }
+  
+    .admin-panel .table td:last-child {
+      margin-top: 10px;
+    }
+  }
+  

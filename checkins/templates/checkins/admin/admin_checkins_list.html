@@ -36,47 +36,47 @@
             <tr class="border-top">
 
               <!-- PERIOD -->
-              <td>
+              <td data-label="Period">
                 {{ row.form.start_date|date:"d M" }} –
                 {{ row.form.end_date|date:"d M Y" }}
               </td>
 
               <!-- TITLE -->
-              <td class="fw-semibold">
+              <td data-label="Check-In" class="fw-semibold">
                 {{ row.form.title }}
               </td>
 
               <!-- COUNTS -->
-              <td class="text-center">
+              <td data-label="Assigned" class="text-center">
                 <span class="badge bg-secondary">
                   {{ row.total }}
                 </span>
               </td>
 
-              <td class="text-center">
+              <td data-label="Submitted" class="text-center">
                 <span class="badge bg-success">
                   {{ row.submitted }}
                 </span>
               </td>
 
-              <td class="text-center">
+              <td data-label="Pending Review" class="text-center">
                 <span class="badge bg-warning text-dark">
                   {{ row.pending_review }}
                 </span>
               </td>
 
-              <td class="text-center">
+              <td data-label="Reviewed" class="text-center">
                 <span class="badge bg-primary">
                   {{ row.reviewed }}
                 </span>
               </td>
 
               <!-- ACTION -->
-              <td class="text-end">
+              <td data-label="Action" class="text-end">
                 <a
-                  href="/admin-panel/checkins/form/{{ row.form.id }}/"
+                  href="{% url 'admin_checkin_overview' row.form.id %}"
                   class="btn btn-sm btn-outline-primary"
-                > 
+                >
                   View
                 </a>
               </td>

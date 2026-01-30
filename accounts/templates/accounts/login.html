@@ -34,8 +34,8 @@
     .logo {
       display: block;
       margin: 0 auto 12px;
-      height: 60px;
-      width: 250px;
+      height: 70px;
+      width: 260px;
     }
 
     .tagline {
@@ -156,28 +156,57 @@
         />
       </div>
 
-      <div class="mb-3">
+      <div class="mb-3 position-relative">
         <label for="password">Password</label>
+      
         <input
           type="password"
           name="password"
           id="password"
-          class="form-control"
+          class="form-control pe-5"
           placeholder="Enter your password"
           required
         />
+      
+        <!-- Eye Icon -->
+        <span
+          id="togglePassword"
+          style="
+            position: absolute;
+            right: 16px;
+            top: 38px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #64748b;
+          "
+        >
+          👁️
+        </span>
       </div>
+      
 
       <button type="submit" class="btn btn-login text-white w-100">
         Sign In
       </button>
     </form>
 
-    <a href="#" class="forgot-link">Forgot your password?</a>
+    <!-- <a href="#" class="forgot-link">Forgot your password?</a> -->
 
     <div class="footer-text">
       Available for Admin and Employee roles
     </div>
   </div>
+  <script>
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+  
+    togglePassword.addEventListener("click", function () {
+      const isPassword = passwordInput.type === "password";
+  
+      passwordInput.type = isPassword ? "text" : "password";
+      togglePassword.textContent = isPassword ? "🙈" : "👁️";
+    });
+  </script>
+  
 </body>
 </html>

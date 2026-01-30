@@ -32,6 +32,11 @@
         border-radius: 12px;
         border: 1px solid #cbd5e1;
         padding-left: 44px;
+        padding-right: 44px; /* 👁️ space */
+    }
+
+    .input-wrapper {
+        position: relative;
     }
 
     .input-icon {
@@ -42,8 +47,15 @@
         color: #94a3b8;
     }
 
-    .input-wrapper {
-        position: relative;
+    .toggle-eye {
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #94a3b8;
+        font-size: 16px;
+        user-select: none;
     }
 
     .helper-text {
@@ -78,6 +90,17 @@
         border: 1px solid #cbd5e1;
         background: white;
         font-weight: 600;
+        display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 32px;
+        align-items: center;
     }
 </style>
 
@@ -96,7 +119,6 @@
         <!-- EMAIL -->
         <div class="mb-4">
             <label class="form-label">Email Address <span class="text-danger">*</span></label>
-
             <div class="input-wrapper">
                 <span class="input-icon">✉️</span>
                 <input
@@ -107,7 +129,6 @@
                     required
                 >
             </div>
-
             <div class="helper-text">
                 This will be the employee's login email
             </div>
@@ -116,40 +137,41 @@
         <!-- PASSWORD -->
         <div class="mb-4">
             <label class="form-label">Password <span class="text-danger">*</span></label>
-
             <div class="input-wrapper">
                 <span class="input-icon">🔒</span>
                 <input
                     type="password"
                     name="password"
+                    id="password"
                     class="form-control"
                     placeholder="Enter password"
                     required
                 >
+                <span class="toggle-eye" onclick="togglePassword('password', this)">👁️</span>
             </div>
-
             <div class="helper-text">
                 Must be at least 8 characters long
             </div>
         </div>
 
-        <!-- CONFIRM PASSWORD (UI ONLY FOR NOW) -->
+        <!-- CONFIRM PASSWORD -->
         <div class="mb-4">
             <label class="form-label">
                 Confirm Password <span class="text-muted">(Optional)</span>
             </label>
-
             <div class="input-wrapper">
                 <span class="input-icon">🔒</span>
                 <input
                     type="password"
+                    id="confirm_password"
                     class="form-control"
                     placeholder="Re-enter password"
                 >
+                <span class="toggle-eye" onclick="togglePassword('confirm_password', this)">👁️</span>
             </div>
         </div>
 
-        <!-- NOTE BOX -->
+        <!-- NOTE -->
         <div class="note-box">
             <strong>ℹ️ Note:</strong>
             Login credentials will be automatically emailed to the employee
@@ -157,9 +179,9 @@
             immediately after account creation.
         </div>
 
-        <!-- ACTION BUTTONS -->
-        <div class="d-flex gap-3 mt-4">
-            <button type="submit" class="btn btn-primary flex-grow-1">
+        <!-- ACTIONS -->
+        <div class="action-buttons">
+            <button type="submit" class="btn btn-primary w-100">
                 ➕ Add Employee
             </button>
 
@@ -169,7 +191,19 @@
         </div>
 
     </form>
-
 </div>
+
+<script>
+    function togglePassword(id, el) {
+        const input = document.getElementById(id);
+        if (input.type === "password") {
+            input.type = "text";
+            el.textContent = "🙈";
+        } else {
+            input.type = "password";
+            el.textContent = "👁️";
+        }
+    }
+</script>
 
 {% endblock %}

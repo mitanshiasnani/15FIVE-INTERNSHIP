@@ -8,8 +8,10 @@ from .models import (
     CheckInAssignment,
 )
 
-from checkins.services.slack import send_checkin_assigned_dm
-
+from checkins.services.slack import (
+    send_checkin_assigned_dm,
+    send_admin_all_submitted_dm,
+)
 
 # -------------------------------------------------
 # Attach default questions when CheckInForm created
@@ -18,7 +20,7 @@ from checkins.services.slack import send_checkin_assigned_dm
     post_save,
     sender=CheckInForm,
     dispatch_uid="checkin_attach_default_questions_v1"
-)
+) 
 def attach_default_questions(sender, instance, created, **kwargs):
     if not created:
         return
@@ -46,11 +48,8 @@ def attach_default_questions(sender, instance, created, **kwargs):
     dispatch_uid="checkin_assignment_slack_dm_v1"
 )
 def notify_employee_on_assignment(sender, instance, created, **kwargs):
-    """
-    Sends EXACTLY ONE Slack DM per assignment.
-    """
     if not created:
-        return  # 🚫 prevents duplicates on updates
+        return
 
     employee = instance.employee
     profile = getattr(employee, "employee_profile", None)
@@ -58,7 +57,7 @@ def notify_employee_on_assignment(sender, instance, created, **kwargs):
     if not profile or not profile.slack_user_id:
         return
 
-    print("📢 SLACK SIGNAL →", employee.email)
+    print("📢 SLACK → Employee assigned:", employee.email)
 
     send_checkin_assigned_dm(
         slack_user_id=profile.slack_user_id,
@@ -67,35 +66,51 @@ def notify_employee_on_assignment(sender, instance, created, **kwargs):
         end_date=instance.checkin_form.end_date,
     )
 
-from django.db.models import Q
-from checkins.services.slack import send_admin_all_submitted_dm
 
-
+# -------------------------------------------------
+# 🔔 Notify admin when ALL employees submit
+# -------------------------------------------------
 @receiver(
     post_save,
     sender=CheckInAssignment,
-    dispatch_uid="checkin_admin_notify_all_submitted_v1"
+    dispatch_uid="checkin_admin_notify_all_submitted_v2"
 )
 def notify_admin_when_all_submitted(sender, instance, **kwargs):
+    # Only react when submission happens
+    if instance.status != "SUBMITTED":
+        return
+
     checkin = instance.checkin_form
 
-    # If admin already notified → STOP
+    # Already notified → STOP
     if checkin.admin_notified_on_complete:
         return
 
-    # Count assignments
-    total = checkin.assignments.count()
-    submitted = checkin.assignments.filter(status="SUBMITTED").count()
+    total = CheckInAssignment.objects.filter(checkin_form=checkin).count()
+    submitted = CheckInAssignment.objects.filter(
+        checkin_form=checkin,
+        status="SUBMITTED"
+    ).count()
 
-    if total > 0 and total == submitted:
-        print("🎯 ALL EMPLOYEES SUBMITTED → ADMIN NOTIFY")
+    if total == 0 or total != submitted:
+        return
 
-        send_admin_all_submitted_dm(
-            title=checkin.title,
-            start_date=checkin.start_date,
-            end_date=checkin.end_date,
-        )
+    admin = checkin.created_by
+    profile = getattr(admin, "employee_profile", None)
 
-        # Mark as notified (VERY IMPORTANT)
-        checkin.admin_notified_on_complete = True
-        checkin.save(update_fields=["admin_notified_on_complete"])
+    if not profile or not profile.slack_user_id:
+        print("⚠️ Admin Slack ID missing — skipping admin DM")
+        return
+
+    print("🎯 ALL EMPLOYEES SUBMITTED → ADMIN NOTIFIED")
+
+    send_admin_all_submitted_dm(
+        slack_user_id=profile.slack_user_id,
+        title=checkin.title,
+        start_date=checkin.start_date,
+        end_date=checkin.end_date,
+    )
+
+    # Mark as notified (CRITICAL)
+    checkin.admin_notified_on_complete = True
+    checkin.save(update_fields=["admin_notified_on_complete"])

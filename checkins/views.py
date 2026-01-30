@@ -5,6 +5,8 @@ from django.conf import settings
 from django.core.mail import send_mail
 from calendar import monthrange
 from datetime import timedelta
+from checkins.services.slack import send_admin_reviewed_dm
+
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -63,9 +65,46 @@ def create_checkin(request):
     questions = Question.objects.filter(is_default=True)
 
     if request.method == "POST":
+
+        # ---------------------------------
+        # ✏️ EDIT DEFAULT QUESTION
+        # ---------------------------------
+        edit_id = request.POST.get("edit_question_id")
+        edit_text = request.POST.get("edit_question_text")
+
+        if edit_id and edit_text:
+            Question.objects.filter(
+                id=edit_id,
+                is_default=True
+            ).update(
+                question_text=edit_text.strip()
+            )
+            return redirect("create_checkin")
+
+        # ---------------------------------
+        # 🗑️ DELETE DEFAULT QUESTION
+        # ---------------------------------
+        delete_id = request.POST.get("delete_question_id")
+
+        if delete_id:
+            Question.objects.filter(
+                id=delete_id,
+                is_default=True
+            ).delete()
+            return redirect("create_checkin")
+
+        # ---------------------------------
+        # ✅ NORMAL CHECK-IN CREATION FLOW
+        # ---------------------------------
         period = request.POST.get("period")
+        start_date_raw = request.POST.get("start_date")
+
+        # Safety (should never happen now, but keeps it solid)
+        if not start_date_raw or not period:
+            return redirect("create_checkin")
+
         start_date = timezone.datetime.strptime(
-            request.POST.get("start_date"), "%Y-%m-%d"
+            start_date_raw, "%Y-%m-%d"
         ).date()
 
         if period == "WEEKLY":
@@ -83,15 +122,21 @@ def create_checkin(request):
             created_by=request.user,
         )
 
-        # QUESTIONS
-        CheckInFormQuestion.objects.filter(checkin_form=checkin).delete()
+        # ---------------------------------
+        # QUESTIONS (DEFAULT + CUSTOM)
+        # ---------------------------------
+        CheckInFormQuestion.objects.filter(
+            checkin_form=checkin
+        ).delete()
 
+        # Default selected questions
         for q_id in request.POST.getlist("questions"):
             CheckInFormQuestion.objects.create(
                 checkin_form=checkin,
                 question_id=q_id
             )
 
+        # Custom questions
         for text in request.POST.getlist("custom_questions[]"):
             if text.strip():
                 q = Question.objects.create(
@@ -104,8 +149,13 @@ def create_checkin(request):
                     question=q
                 )
 
-        # ASSIGN ONLY (NO SLACK)
-        employees = User.objects.filter(role="EMPLOYEE", is_active=True)
+        # ---------------------------------
+        # ASSIGN TO EMPLOYEES
+        # ---------------------------------
+        employees = User.objects.filter(
+            role="EMPLOYEE",
+            is_active=True
+        )
 
         for emp in employees:
             CheckInAssignment.objects.create(
@@ -117,10 +167,11 @@ def create_checkin(request):
 
         return redirect("admin_checkins_list")
 
-    return render(request, "checkins/create_checkin.html", {"questions": questions})
-
-
-
+    return render(
+        request,
+        "checkins/create_checkin.html",
+        {"questions": questions}
+    )
 
 
 # -------------------------------
@@ -208,6 +259,8 @@ def employee_checkin_form(request, assignment_id):
             "questions": questions,
             "existing_answers": existing_answers,
             "is_expired": is_expired,
+            "admin_comment": assignment.admin_comment,      # ✅ NEW
+            "is_reviewed": assignment.review_status == "REVIEWED",  # ✅ NEW
         }
     )
 
@@ -317,3 +370,171 @@ def admin_employee_checkins(request, employee_id):
             "assignments": assignments,
         }
     )
+@login_required
+def admin_checkin_detail(request, checkin_id):
+    # 🔐 Admin-only
+    if not request.user.is_superuser and request.user.role != "ADMIN":
+        return redirect("employee_dashboard")
+
+    checkin = get_object_or_404(CheckInForm, id=checkin_id)
+
+    assignments = (
+        CheckInAssignment.objects
+        .filter(checkin_form=checkin)
+        .select_related("employee")
+        .order_by("employee__email")
+    )
+
+    return render(
+        request,
+        "checkins/admin/admin_checkin_detail.html",
+        {
+            "checkin": checkin,
+            "assignments": assignments,
+        }
+    )
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render, redirect
+
+from checkins.models import CheckInForm, CheckInAssignment
+
+
+@login_required
+def admin_checkin_overview(request, checkin_id):
+    # 🔐 Admin-only protection
+    if not request.user.is_superuser and request.user.role != "ADMIN":
+        return redirect("employee_dashboard")
+
+    checkin = get_object_or_404(CheckInForm, id=checkin_id)
+
+    assignments = (
+        CheckInAssignment.objects
+        .filter(checkin_form=checkin)
+        .select_related("employee")
+        .order_by("employee__email")
+    )
+
+    return render(
+        request,
+        "checkins/admin/admin_checkin_overview.html",
+        {
+            "checkin": checkin,
+            "assignments": assignments,
+        }
+    )
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render, redirect
+from django.utils import timezone
+
+from checkins.models import CheckInAssignment, CheckInAnswer
+
+
+from django.utils import timezone
+from checkins.services.slack import send_admin_reviewed_dm
+
+@login_required
+def admin_assignment_review(request, assignment_id):
+    if not request.user.is_superuser and request.user.role != "ADMIN":
+        return redirect("employee_dashboard")
+
+    assignment = get_object_or_404(CheckInAssignment, id=assignment_id)
+
+    answers = (
+        CheckInAnswer.objects
+        .filter(assignment=assignment)
+        .select_related("question")
+        .order_by("question__id")
+    )
+
+    if request.method == "POST":
+        assignment.review_status = "REVIEWED"
+        assignment.reviewed_at = timezone.now()
+        assignment.admin_comment = request.POST.get("admin_comment", "")
+        assignment.save(
+            update_fields=["review_status", "reviewed_at", "admin_comment"]
+        )
+
+        # 🔔 Slack DM to employee
+        if assignment.employee.employee_profile.slack_user_id:
+            send_admin_reviewed_dm(
+                slack_user_id=assignment.employee.employee_profile.slack_user_id,
+                title=assignment.checkin_form.title,
+                start_date=assignment.checkin_form.start_date,
+                end_date=assignment.checkin_form.end_date,
+                comment=assignment.admin_comment,
+            )
+
+        return redirect("admin_checkins_list")
+
+    return render(
+        request,
+        "checkins/admin/admin_checkin_detail.html",
+        {
+            "assignment": assignment,
+            "answers": answers,
+        }
+    )
+
+
+
+
+    # checkins/views.py
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+
+from .models import Question
+
+
+@login_required
+def manage_default_questions(request):
+    # 🔐 Admin-only
+    if request.user.role != "ADMIN":
+        return redirect("employee_dashboard")
+
+    # ---------------- ADD QUESTION ----------------
+    if request.method == "POST" and "add_question" in request.POST:
+        text = request.POST.get("question_text", "").strip()
+
+        if text:
+            Question.objects.create(
+                question_text=text,
+                is_default=True,
+                created_by=request.user
+            )
+            messages.success(request, "Default question added.")
+        else:
+            messages.error(request, "Question cannot be empty.")
+
+        return redirect("manage_default_questions")
+
+    # ---------------- DELETE QUESTION ----------------
+    if request.method == "POST" and "delete_question_id" in request.POST:
+        qid = request.POST.get("delete_question_id")
+        Question.objects.filter(id=qid, is_default=True).delete()
+        messages.success(request, "Default question deleted.")
+        return redirect("manage_default_questions")
+
+    # ---------------- EDIT QUESTION ----------------
+    if request.method == "POST" and "edit_question_id" in request.POST:
+        qid = request.POST.get("edit_question_id")
+        new_text = request.POST.get("edit_question_text", "").strip()
+
+        if new_text:
+            Question.objects.filter(id=qid, is_default=True).update(
+                question_text=new_text
+            )
+            messages.success(request, "Default question updated.")
+
+        return redirect("manage_default_questions")
+
+    questions = Question.objects.filter(is_default=True).order_by("created_at")
+
+    return render(
+        request,
+        "checkins/admin/manage_default_questions.html",
+        {"questions": questions}
+    )
+
+  

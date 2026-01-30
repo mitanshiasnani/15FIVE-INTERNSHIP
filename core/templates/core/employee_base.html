@@ -3,18 +3,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{% block title %}Employee | 15-Five{% endblock %}</title>
 
-    <!-- Common App CSS -->
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
 </head>
 <body>
 
-<div class="wrapper">
+<div class="layout">
 
-    <aside class="sidebar">
+    <!-- Mobile menu button -->
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span class="logo">15</span>
+            <span class="logo">🧑‍💻</span>
             <span class="brand">15-Five</span>
         </div>
 
@@ -22,44 +28,52 @@
             <li>
                 <a href="{% url 'employee_profile' %}"
                    class="{% if request.resolver_match.url_name == 'employee_profile' %}active{% endif %}">
-                   Employee Profile
+                    Employee Profile
                 </a>
             </li>
 
             <li>
                 <a href="{% url 'employee_dashboard' %}"
                    class="{% if request.resolver_match.url_name == 'employee_dashboard' %}active{% endif %}">
-                   Dashboard
+                    Dashboard
                 </a>
             </li>
 
             <li>
                 <a href="{% url 'employee_checkins' %}"
                    class="{% if request.resolver_match.url_name == 'employee_checkins' %}active{% endif %}">
-                   Check-Ins
+                    Check-Ins
                 </a>
             </li>
 
             <li>
                 <a href="{% url 'employee_settings' %}"
                    class="{% if request.resolver_match.url_name == 'employee_settings' %}active{% endif %}">
-                   Settings
+                    Settings
                 </a>
             </li>
         </ul>
 
         <div class="sidebar-footer">
-            <a href="{% url 'logout' %}" class="logout">Logout</a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
         </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="main-content">
-        <div class="content-wrapper">
-            {% block content %}{% endblock %}
-        </div>
+        {% block content %}{% endblock %}
     </main>
 
 </div>
+
+<script>
+function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+}
+</script>
 
 </body>
 </html>

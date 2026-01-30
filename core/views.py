@@ -20,16 +20,31 @@ def admin_dashboard(request):
         return redirect('employee_dashboard')
 
     # Total employees (EMPLOYEE role only)
-    total_employees = User.objects.filter(role='EMPLOYEE').count()
+    total_employees = User.objects.filter(
+    role='EMPLOYEE',
+    is_active=True
+    ).count()
+
 
     # Total check-ins (created forms)
     total_checkins = CheckInForm.objects.count()
 
     # Check-in assignment status counts
     total_assigned = CheckInAssignment.objects.count()
-    submitted = CheckInAssignment.objects.filter(status='SUBMITTED').count()
-    pending = CheckInAssignment.objects.filter(status='PENDING').count()
-    reviewed = CheckInAssignment.objects.filter(status='REVIEWED').count()
+    submitted = CheckInAssignment.objects.filter(
+    status='SUBMITTED'
+    ).count()
+
+    pending = CheckInAssignment.objects.filter(
+    status='SUBMITTED',
+    review_status='PENDING'
+    ).count()
+
+    reviewed = CheckInAssignment.objects.filter(
+    status='SUBMITTED',
+    review_status='REVIEWED'
+    ).count()
+
 
     return render(
         request,
@@ -53,6 +68,9 @@ def admin_profile(request):
     return render(request, 'core/admin_profile.html', {'user': request.user})
 
 
+from django.core.mail import send_mail
+from django.conf import settings
+
 @login_required
 def add_employee(request):
     if not request.user.is_superuser and request.user.role != 'ADMIN':
@@ -62,13 +80,40 @@ def add_employee(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        if User.objects.filter(email=email).exists():
-            return HttpResponse("Employee with this email already exists")
+        # ✅ NEW LOGIC — email must contain `.todoit`
+        if ".todoit" not in email:
+            messages.error(
+                request,
+                "Email must contain '.todoit'. Please use a valid company email."
+            )
+            return redirect("add_employee")
 
-        User.objects.create_user(
+        # ❌ existing logic (unchanged)
+        if User.objects.filter(email=email).exists():
+            messages.error(
+                request,
+                "Employee with this email already exists."
+            )
+            return redirect("add_employee")
+
+        # ❌ existing logic (unchanged)
+        user = User.objects.create_user(
             email=email,
             password=password,
             role='EMPLOYEE'
+        )
+
+        # ✅ NEW LOGIC — send email with password ONLY
+        send_mail(
+            subject="Your 15-Five Employee Account",
+            message=(
+                "Your employee account has been created successfully.\n\n"
+                f"Password: {password}\n\n"
+                "Please keep this password secure."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
         )
 
         return redirect('admin_dashboard')
@@ -76,12 +121,17 @@ def add_employee(request):
     return render(request, 'core/add_employee.html')
 
 
+
 @login_required
 def employee_list(request):
     if not request.user.is_superuser and request.user.role != 'ADMIN':
         return redirect('employee_dashboard')
 
-    employees = User.objects.filter(role='EMPLOYEE').order_by('-created_at')
+    employees = User.objects.filter(
+    role='EMPLOYEE',
+    is_active=True
+).order_by('-created_at')
+
 
     return render(
         request,
@@ -310,14 +360,30 @@ def employee_settings(request):
 
         user = request.user
 
+        # ❌ existing logic (unchanged)
         if not user.check_password(current_password):
             messages.error(request, "Current password is incorrect.")
             return redirect("employee_settings")
 
+        # ❌ existing logic (unchanged)
         if new_password != confirm_password:
             messages.error(request, "New passwords do not match.")
             return redirect("employee_settings")
 
+        # ✅ NEW LOGIC — empty password check
+        if not new_password:
+            messages.error(request, "New password cannot be empty.")
+            return redirect("employee_settings")
+
+        # ✅ NEW LOGIC — minimum length safety
+        if len(new_password) < 8:
+            messages.error(
+                request,
+                "Password must be at least 8 characters long."
+            )
+            return redirect("employee_settings")
+
+        # ✅ existing logic (unchanged)
         user.set_password(new_password)
         user.save()
 
@@ -330,6 +396,7 @@ def employee_settings(request):
         return redirect("login")
 
     return render(request, "core/employee_settings.html")
+
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
@@ -402,3 +469,30 @@ def remove_employee(request, user_id):
     messages.success(request, "Employee removed successfully.")
 
     return redirect("employee_list")
+@login_required
+def admin_employee_checkins(request, user_id):
+    # 🔐 Admin-only access
+    if not request.user.is_superuser and request.user.role != "ADMIN":
+        return redirect("employee_dashboard")
+
+    employee = get_object_or_404(
+        User,
+        id=user_id,
+        role="EMPLOYEE"
+    )
+
+    assignments = (
+        CheckInAssignment.objects
+        .filter(employee=employee)
+        .select_related("checkin_form")
+        .order_by("-assigned_at")
+    )
+
+    return render(
+        request,
+        "core/admin_employee_checkins.html",
+        {
+            "employee": employee,
+            "assignments": assignments,
+        }
+    )

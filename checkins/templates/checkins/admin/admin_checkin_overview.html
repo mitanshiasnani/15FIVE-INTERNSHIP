@@ -1,0 +1,79 @@
+{% extends "core/admin_base.html" %}
+
+{% block title %}Check-In Overview{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <h1 class="fw-bold mb-3">
+    {{ checkin.title }}
+  </h1>
+
+  <p class="text-muted">
+    {{ checkin.start_date }} → {{ checkin.end_date }}
+  </p>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Employee</th>
+              <th class="text-center">Status</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for assignment in assignments %}
+            <tr class="border-top">
+
+              <td>
+                {{ assignment.employee.email }}
+              </td>
+
+              <td class="text-center">
+                {% if assignment.status == "SUBMITTED" %}
+                  <span class="badge bg-success">Submitted</span>
+                {% elif assignment.status == "PARTIAL" %}
+                  <span class="badge bg-warning text-dark">Partially Filled</span>
+                {% elif assignment.status == "REVIEWED" %}
+                  <span class="badge bg-primary">Reviewed</span>
+                {% else %}
+                  <span class="badge bg-secondary">Pending</span>
+                {% endif %}
+              </td>
+
+              <td class="text-end">
+                {% if assignment.status != "PENDING" %}
+                  <a
+                    href="{% url 'admin_assignment_review' assignment.id %}"
+                    class="btn btn-sm btn-outline-primary"
+                  >
+                    View Submission
+                  </a>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="text-center py-4 text-muted">
+                No employees assigned.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

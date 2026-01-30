@@ -87,9 +87,12 @@
         </a>
     </div>
 
-    <!-- TOTAL CHECK-INS (UNCHANGED) -->
-    <div class="col-md-6">
-        <div class="stat-card">
+   <!-- TOTAL CHECK-INS -->
+<div class="col-md-6">
+    <a href="{% url 'admin_checkins_list' %}"
+       style="text-decoration: none; color: inherit;">
+
+        <div class="stat-card" style="cursor: pointer;">
             <div>
                 <div class="stat-label">Total Check-ins</div>
                 <div class="stat-number">{{ total_checkins }}</div>
@@ -97,9 +100,10 @@
             </div>
             <div class="icon-box">📋</div>
         </div>
-    </div>
 
+    </a>
 </div>
+
 
 <!-- CHECK-IN STATUS OVERVIEW -->
 <div class="activity-card">
