@@ -8,7 +8,9 @@
 
 <!-- KPI CARD -->
 <div class="kpi-card">
-    <div class="kpi-icon">✓</div>
+    <div class="kpi-icon success-icon">
+        <i class="bi bi-check-circle"></i>
+    </div>
     <div>
         <div class="kpi-label">Total Check-Ins Submitted</div>
         <div class="kpi-value">{{ submitted_count }}</div>
@@ -21,7 +23,9 @@
     {% for assignment in pending_checkins %}
         <div class="checkin-card">
             <div class="checkin-left">
-                <div class="checkin-icon warning">⏰</div>
+                <div class="checkin-icon pending-icon">
+                    <i class="bi bi-clock"></i>
+                </div>
                 <div>
                     <div class="checkin-title">
                         {{ assignment.checkin_form.start_date|date:"d M Y" }}
@@ -36,9 +40,13 @@
 
             <div class="checkin-right">
                 {% if assignment.status == "PARTIAL" %}
-                    <span class="badge in-progress">Partially Filled</span>
+                    <span class="badge rounded-pill bg-warning-subtle text-warning">
+                        Partially Filled
+                    </span>
                 {% else %}
-                    <span class="badge pending">Pending</span>
+                    <span class="badge rounded-pill bg-warning-subtle text-warning">
+                        Pending
+                    </span>
                 {% endif %}
 
                 <a href="{% url 'employee_checkin_form' assignment.id %}"
@@ -53,7 +61,7 @@
         </div>
     {% endfor %}
 {% else %}
-    <p style="color:#64748b;">No pending check-ins 🎉</p>
+    <p style="color:#64748b;">No pending check-ins</p>
 {% endif %}
 
 {% if submitted_checkins %}
@@ -62,7 +70,9 @@
     {% for assignment in submitted_checkins %}
         <div class="checkin-card">
             <div class="checkin-left">
-                <div class="checkin-icon success">✓</div>
+                <div class="checkin-icon success-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
                 <div>
                     <div class="checkin-title">
                         {{ assignment.checkin_form.start_date|date:"d M Y" }}
@@ -76,9 +86,10 @@
             </div>
 
             <div class="checkin-right">
-                <span class="badge submitted">Submitted</span>
+                <span class="badge rounded-pill bg-success-subtle text-success">
+                    Submitted
+                </span>
 
-                <!-- ✅ VIEW BUTTON -->
                 <a href="{% url 'employee_checkin_form' assignment.id %}"
                    class="primary-btn outline">
                     View

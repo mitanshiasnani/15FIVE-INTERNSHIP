@@ -9,9 +9,22 @@
 {% for assignment in assignments %}
     <div class="checkin-card">
         <div class="checkin-left">
-            <div class="checkin-icon {% if assignment.status == 'SUBMITTED' %}success{% else %}warning{% endif %}">
-                {% if assignment.status == "SUBMITTED" %}✓{% else %}⏰{% endif %}
-            </div>
+
+            <!-- STATUS ICON -->
+            {% if assignment.status == "SUBMITTED" %}
+                <div class="checkin-icon success-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+            {% elif assignment.status == "PARTIAL" %}
+                <div class="checkin-icon info-icon">
+                    <i class="bi bi-pencil-square"></i>
+                </div>
+            {% else %}
+                <div class="checkin-icon pending-icon">
+                    <i class="bi bi-clock"></i>
+                </div>
+            {% endif %}
+
             <div>
                 <div class="checkin-title">
                     {{ assignment.checkin_form.start_date|date:"d M Y" }}
@@ -26,21 +39,27 @@
 
         <div class="checkin-right">
             {% if assignment.status == "SUBMITTED" %}
-                <span class="badge submitted">Submitted</span>
+                <span class="badge rounded-pill bg-success-subtle text-success">
+                    Submitted
+                </span>
                 <a href="{% url 'employee_checkin_form' assignment.id %}"
                    class="primary-btn outline">
                     View
                 </a>
 
             {% elif assignment.status == "PARTIAL" %}
-                <span class="badge in-progress">Partially Filled</span>
+                <span class="badge rounded-pill bg-info-subtle text-info">
+                    Partially Filled
+                </span>
                 <a href="{% url 'employee_checkin_form' assignment.id %}"
                    class="primary-btn">
                     Continue
                 </a>
 
             {% else %}
-                <span class="badge pending">Pending</span>
+                <span class="badge rounded-pill bg-warning-subtle text-warning">
+                    Pending
+                </span>
                 <a href="{% url 'employee_checkin_form' assignment.id %}"
                    class="primary-btn">
                     Submit

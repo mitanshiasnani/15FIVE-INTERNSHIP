@@ -111,6 +111,7 @@ class CheckInAssignment(models.Model):
 
     assigned_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
+    reminder_sent = models.BooleanField(default=False)
 
 
     

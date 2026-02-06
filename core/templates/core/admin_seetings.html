@@ -14,7 +14,7 @@
                 Logged in as <strong>{{ request.user.email }}</strong>
             </p>
 
-            <form method="post" action="{% url 'logout' %}">
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-outline-danger w-100">
                     Logout

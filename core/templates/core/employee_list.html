@@ -51,9 +51,10 @@
                 <th>Role</th>
                 <th>Status</th>
                 <th>Joined</th>
-                <th>Action</th> <!-- ✅ added -->
+                <th>Action</th>
             </tr>
         </thead>
+
         <tbody>
             {% for employee in employees %}
             <tr>
@@ -74,7 +75,8 @@
                     <form
                         method="post"
                         action="{% url 'remove_employee' employee.id %}"
-                        onsubmit="return confirm('Are you sure you want to remove this employee?');"
+                        class="delete-form"
+                        data-message="This employee will lose access to the system and all assigned check-ins."
                     >
                         {% csrf_token %}
                         <button type="submit" class="remove-btn">
@@ -85,7 +87,9 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5">No employees found.</td>
+                <td colspan="5" class="text-muted">
+                    No employees found.
+                </td>
             </tr>
             {% endfor %}
         </tbody>

@@ -10,21 +10,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 
-
     <style>
-        /* ===== BASE ===== */
         body {
             margin: 0;
             background-color: #f5f7fb;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
+        .layout { display: flex; min-height: 100vh; }
 
-        /* ===== SIDEBAR ===== */
         .sidebar {
             width: 260px;
             background-color: #1e3a5f;
@@ -36,7 +30,6 @@
             position: fixed;
             left: 0;
             top: 0;
-            transition: transform 0.3s ease;
             z-index: 1100;
         }
 
@@ -62,14 +55,12 @@
             color: #ffffff;
         }
 
-        /* ===== MAIN CONTENT ===== */
         .main {
             flex: 1;
             padding: 40px;
             margin-left: 260px;
         }
 
-        /* ===== HAMBURGER BUTTON ===== */
         .admin-menu-btn {
             display: none;
             position: fixed;
@@ -83,32 +74,15 @@
             background: #3b82f6;
             color: white;
             font-size: 22px;
-            cursor: pointer;
         }
 
-        /* ===== OVERLAY ===== */
-        .admin-overlay {
-            display: none;
-        }
+        .admin-overlay { display: none; }
 
-        /* ===== TABLET & MOBILE ===== */
         @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .admin-menu-btn {
-                display: block;
-            }
-
-            .main {
-                margin-left: 0;
-                padding: 80px 20px;
-            }
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+            .sidebar.open { transform: translateX(0); }
+            .admin-menu-btn { display: block; }
+            .main { margin-left: 0; padding: 80px 20px; }
 
             .admin-overlay {
                 display: block;
@@ -127,93 +101,128 @@
             }
         }
 
-        /* ===== DESKTOP ===== */
-        @media (min-width: 1025px) {
-            .sidebar {
-                transform: translateX(0);
-            }
-
-            .admin-menu-btn {
-                display: none;
-            }
+        .loader-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loader-text { margin-top: 12px; color: #fff; font-weight: 600; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- GLOBAL DELETE CONFIRM (UNCHANGED) -->
+    <script>
+    document.addEventListener("submit", function (e) {
+        const form = e.target;
+        if (!form.classList.contains("delete-form")) return;
+
+        e.preventDefault();
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: form.dataset.message || "This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#2563eb",
+            cancelButtonColor: "#6b7280",
+            confirmButtonText: "Yes, delete",
+            cancelButtonText: "Cancel",
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById("page-loader").style.display = "block";
+                form.submit();
+            }
+        });
+    });
+    </script>
+    <script>
+        document.addEventListener("submit", function (e) {
+            const form = e.target;
+        
+            if (!form.classList.contains("logout-form")) return;
+        
+            e.preventDefault();
+        
+            Swal.fire({
+                title: "Confirm Logout",
+                text: "Are you sure you want to log out?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc2626",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Yes, logout",
+                cancelButtonText: "Cancel",
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("page-loader").style.display = "block";
+                    form.submit();
+                }
+            });
+        });
+        </script>
+        
 </head>
 
-<body class="admin-panel">
+<body>
 
-<!-- Hamburger -->
+<div id="page-loader" style="display:none;">
+    <div class="loader-backdrop">
+        <div class="spinner"></div>
+        <p class="loader-text">Please wait…</p>
+    </div>
+</div>
+
 <button class="admin-menu-btn" onclick="toggleAdminSidebar()">☰</button>
 <div class="admin-overlay" onclick="toggleAdminSidebar()"></div>
 
 <div class="layout">
-
-    <!-- SIDEBAR -->
     <aside class="sidebar">
-        <div class="logo">
-            15-Five
-            <div style="font-size:12px; color:#93c5fd;">Admin Panel</div>
-        </div>
-
-        <a href="{% url 'admin_dashboard' %}"
-           class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-            Dashboard
-        </a>
-
-        <a href="{% url 'employee_list' %}"
-           class="nav-link {% if request.resolver_match.url_name == 'employee_list' %}active{% endif %}">
-            Employees
-        </a>
-
-        <a href="{% url 'add_employee' %}"
-           class="nav-link {% if request.resolver_match.url_name == 'add_employee' %}active{% endif %}">
-            Add Employee
-        </a>
-
-        <a href="{% url 'create_checkin' %}"
-           class="nav-link {% if request.resolver_match.url_name == 'create_checkin' %}active{% endif %}">
-            Create Check-In
-        </a>
-
-        <a href="{% url 'admin_checkins_list' %}"
-           class="nav-link {% if request.resolver_match.url_name == 'admin_checkins_list' %}active{% endif %}">
-            Check-In History
-        </a>
-
-        <a href="{% url 'manage_default_questions' %}"
-           class="nav-link {% if request.resolver_match.url_name == 'manage_default_questions' %}active{% endif %}">
-            Default Questions
-        </a>
-
-        <a href="{% url 'admin_seetings' %}" class="nav-link">
-            Logout
-        </a>
+        <div class="logo">15-Five<div style="font-size:12px;color:#93c5fd;">Admin Panel</div></div>
+        <a href="{% url 'admin_dashboard' %}" class="nav-link">Dashboard</a>
+        <a href="{% url 'employee_list' %}" class="nav-link">Employees</a>
+        <a href="{% url 'add_employee' %}" class="nav-link">Add Employee</a>
+        <a href="{% url 'create_checkin' %}" class="nav-link">Create Check-In</a>
+        <a href="{% url 'admin_checkins_list' %}" class="nav-link">Check-In History</a>
+        <a href="{% url 'manage_default_questions' %}" class="nav-link">Default Questions</a>
+        <a href="{% url 'admin_seetings' %}" class="nav-link">Settings</a>
     </aside>
 
-    <!-- MAIN -->
     <main class="main">
-
-        <!-- ✅ MESSAGE CONSUMPTION (FIX) -->
         {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} py-2">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
         {% endif %}
-
         {% block content %}{% endblock %}
     </main>
-
 </div>
 
 <script>
-    function toggleAdminSidebar() {
-        document.querySelector('.sidebar').classList.toggle('open');
-        document.querySelector('.admin-overlay').classList.toggle('active');
-    }
+function toggleAdminSidebar() {
+    document.querySelector('.sidebar').classList.toggle('open');
+    document.querySelector('.admin-overlay').classList.toggle('active');
+}
 </script>
 
 {% block scripts %}{% endblock %}

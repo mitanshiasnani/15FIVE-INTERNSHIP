@@ -17,11 +17,8 @@
   ">
 
     <!-- NAME DISPLAY -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-      <div
-        id="nameText"
-        style="font-size:22px;font-weight:700;"
-      >
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div style="font-size:22px;font-weight:700;">
         {% if profile.full_name %}
           {{ profile.full_name }}
         {% else %}
@@ -29,14 +26,15 @@
         {% endif %}
       </div>
 
-      <!-- Pencil icon -->
-      <span
-        id="editNameBtn"
-        style="cursor:pointer;color:#3b82f6;font-size:16px;"
-        title="Edit name"
+      <!-- EDIT BUTTON -->
+      <button
+        type="button"
+        id="editProfileBtn"
+        class="primary-btn outline"
+        style="padding:6px 14px;font-size:13px;"
       >
-        ✏️
-      </span>
+        Edit Profile
+      </button>
     </div>
 
     <!-- EMAIL (SECONDARY INFO) -->
@@ -50,7 +48,7 @@
     <form method="post">
       {% csrf_token %}
 
-      <!-- Hidden by default -->
+      <!-- EDITABLE NAME -->
       <div id="nameInputWrapper" style="display:none;margin-bottom:20px;">
         <label style="display:block;font-size:13px;font-weight:600;color:#475569;margin-bottom:6px;">
           Full Name
@@ -59,7 +57,7 @@
           type="text"
           name="full_name"
           value="{{ profile.full_name }}"
-          placeholder="Enter your name"
+          placeholder="Enter your full name"
           style="
             width:100%;
             padding:12px 14px;
@@ -108,13 +106,14 @@
 
 <!-- SIMPLE JS -->
 <script>
-  const editBtn = document.getElementById("editNameBtn");
+  const editBtn = document.getElementById("editProfileBtn");
   const inputWrapper = document.getElementById("nameInputWrapper");
   const saveBtn = document.getElementById("saveBtn");
 
   editBtn.addEventListener("click", () => {
     inputWrapper.style.display = "block";
     saveBtn.style.display = "inline-block";
+    editBtn.style.display = "none";
   });
 </script>
 

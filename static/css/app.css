@@ -675,3 +675,26 @@ html, body {
 .logout-btn:active {
     transform: scale(0.98);
 }
+
+/* ===== ICON STYLES ===== */
+.kpi-icon,
+.checkin-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.success-icon {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+
+.pending-icon {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+

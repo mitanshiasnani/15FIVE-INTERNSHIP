@@ -95,3 +95,19 @@ def send_admin_reviewed_dm(slack_user_id, title, start_date, end_date, comment):
 
     except SlackApiError as e:
         print("❌ Review DM failed:", e.response["error"])
+
+def send_checkin_deadline_reminder_dm(slack_user_id, title, end_date):
+    try:
+        client.chat_postMessage(
+            channel=slack_user_id,
+            text=(
+                "⏰ *Check-In Reminder*\n\n"
+                f"*{title}*\n"
+                f"📅 Deadline: {end_date}\n\n"
+                "Please complete your check-in before the deadline."
+            )
+        )
+        print("✅ Reminder DM sent")
+
+    except SlackApiError as e:
+        print("❌ Reminder DM failed:", e.response["error"])
