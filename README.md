@@ -175,7 +175,6 @@ python manage.py runserver
 
 ## 🚀 Future Enhancements
 
-* Performance analytics & charts
 * Manager hierarchy support
 * Cloud deployment (AWS / Render)
 * Export reports (PDF / CSV)
