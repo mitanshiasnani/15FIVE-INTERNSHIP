@@ -496,3 +496,48 @@ def admin_employee_checkins(request, user_id):
             "assignments": assignments,
         }
     )
+import json
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from checkins.analytics import (
+    get_completion_trend,
+    get_employee_completion_rates,
+    get_sentiment_trend,
+    get_employee_sentiment_summary,
+    get_summary_stats,
+)
+
+
+@login_required
+def analytics_dashboard(request):
+    if not request.user.is_superuser and request.user.role != "ADMIN":
+        return redirect("employee_dashboard")
+
+    summary = get_summary_stats()
+    completion_trend = get_completion_trend(weeks=8)
+    employee_rates = get_employee_completion_rates()
+    sentiment_trend = get_sentiment_trend(weeks=8)
+    employee_sentiment = get_employee_sentiment_summary()
+
+    # Prepare JSON for Chart.js
+    completion_labels = [w["week_label"] for w in completion_trend]
+    completion_rates = [w["rate"] for w in completion_trend]
+
+    sentiment_labels = [w["week_label"] for w in sentiment_trend]
+    sentiment_positive = [w["positive"] for w in sentiment_trend]
+    sentiment_neutral = [w["neutral"] for w in sentiment_trend]
+    sentiment_negative = [w["negative"] for w in sentiment_trend]
+
+    return render(request, "core/analytics_dashboard.html", {
+        "summary": summary,
+        "employee_rates": employee_rates,
+        "employee_sentiment": employee_sentiment,
+
+        # JSON for charts
+        "completion_labels_json": json.dumps(completion_labels),
+        "completion_rates_json": json.dumps(completion_rates),
+        "sentiment_labels_json": json.dumps(sentiment_labels),
+        "sentiment_positive_json": json.dumps(sentiment_positive),
+        "sentiment_neutral_json": json.dumps(sentiment_neutral),
+        "sentiment_negative_json": json.dumps(sentiment_negative),
+    })

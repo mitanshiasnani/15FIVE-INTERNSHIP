@@ -138,3 +138,65 @@ class CheckInAnswer(models.Model):
 
     def __str__(self):
         return f"{self.employee.email} - {self.question.question_text[:30]}"
+
+class CheckinAnalysis(models.Model):
+    """
+    Stores AI-generated sentiment and blocker analysis for each check-in answer
+    """
+    checkin_answer = models.OneToOneField(
+        CheckInAnswer,
+        on_delete=models.CASCADE,
+        related_name='analysis'
+    )
+    
+    # Sentiment Analysis (using TextBlob)
+    sentiment_score = models.FloatField(default=0.0)  # -1.0 to 1.0
+    sentiment_label = models.CharField(
+        max_length=20,
+        choices=[
+            ('NEGATIVE', '😞 Negative'),
+            ('NEUTRAL', '😐 Neutral'),
+            ('POSITIVE', '😊 Positive'),
+        ],
+        default='NEUTRAL'
+    )
+    
+    # Blocker Detection
+    has_blocker = models.BooleanField(default=False)
+    blocker_types = models.JSONField(default=list)  # ['API', 'Design', 'Team', etc]
+    blocker_text = models.TextField(blank=True)  # Extracted blocker text
+    
+    # Energy/Mood Level (1-10 scale)
+    energy_level = models.IntegerField(default=5)
+    
+    # Auto-generated summary
+    ai_summary = models.TextField(blank=True)  # Short summary of response
+    
+    # Metadata
+    analyzed_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Check-in Analysis"
+        verbose_name_plural = "Check-in Analyses"
+    
+    def __str__(self):
+        return f"{self.checkin_answer.checkin_assignment.employee.email} - {self.sentiment_label}"
+    
+    def get_sentiment_color(self):
+        """Return color for UI display"""
+        if self.sentiment_score > 0.1:
+            return 'green'
+        elif self.sentiment_score < -0.1:
+            return 'red'
+        return 'amber'
+    
+    def get_energy_emoji(self):
+        """Return emoji based on energy level"""
+        if self.energy_level >= 8:
+            return '⚡'
+        elif self.energy_level >= 6:
+            return '💪'
+        elif self.energy_level >= 4:
+            return '😐'
+        else:
+            return '😴'

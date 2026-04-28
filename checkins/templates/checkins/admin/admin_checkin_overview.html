@@ -1,79 +1,90 @@
 {% extends "core/admin_base.html" %}
-
-{% block title %}Check-In Overview{% endblock %}
+{% block breadcrumb %}Check-In Overview{% endblock %}
+{% block title %}Check-In Overview | 15-Five{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
 
-  <h1 class="fw-bold mb-3">
-    {{ checkin.title }}
-  </h1>
+<div class="page-header" style="display:flex; align-items:center; justify-content:space-between;">
+  <div>
+    <h1>{{ checkin.title }}</h1>
+    <p style="margin-top:4px;">{{ checkin.start_date|date:"d M Y" }} → {{ checkin.end_date|date:"d M Y" }}</p>
+  </div>
+  <a href="{% url 'admin_checkins_list' %}" class="btn btn-ghost">← Back</a>
+</div>
 
-  <p class="text-muted">
-    {{ checkin.start_date }} → {{ checkin.end_date }}
-  </p>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th style="text-align:center;">Status</th>
+        <th style="text-align:center;">Review Status</th>
+        <th style="text-align:right;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for assignment in assignments %}
+      <tr>
+        <td style="font-weight:500; color:var(--text);">{{ assignment.employee.email }}</td>
+        <td style="text-align:center;">
+          {% if assignment.status == "SUBMITTED" %}
+            <span class="badge badge-green">Submitted</span>
+          {% elif assignment.status == "PARTIAL" %}
+            <span class="badge badge-amber">In Progress</span>
+          {% else %}
+            <span class="badge badge-blue">Pending</span>
+          {% endif %}
+        </td>
+        <td style="text-align:center;">
+          {% if assignment.review_status == "REVIEWED" %}
+            <span class="badge badge-green">Reviewed</span>
+          {% else %}
+            <span class="badge badge-accent">Pending Review</span>
+          {% endif %}
+        </td>
+        <td style="text-align:right;">
+          {% if assignment.status == "SUBMITTED" %}
+            <a href="{% url 'admin_assignment_review' assignment.id %}" class="btn btn-primary btn-sm">
+              Review →
+            </a>
+          {% else %}
+            <span style="color:var(--text3); font-size:13px;">Not submitted</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="empty">No employees assigned to this check-in.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
-  <div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
-
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Employee</th>
-              <th class="text-center">Status</th>
-              <th class="text-end">Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for assignment in assignments %}
-            <tr class="border-top">
-
-              <td>
-                {{ assignment.employee.email }}
-              </td>
-
-              <td class="text-center">
-                {% if assignment.status == "SUBMITTED" %}
-                  <span class="badge bg-success">Submitted</span>
-                {% elif assignment.status == "PARTIAL" %}
-                  <span class="badge bg-warning text-dark">Partially Filled</span>
-                {% elif assignment.status == "REVIEWED" %}
-                  <span class="badge bg-primary">Reviewed</span>
-                {% else %}
-                  <span class="badge bg-secondary">Pending</span>
-                {% endif %}
-              </td>
-
-              <td class="text-end">
-                {% if assignment.status != "PENDING" %}
-                  <a
-                    href="{% url 'admin_assignment_review' assignment.id %}"
-                    class="btn btn-sm btn-outline-primary"
-                  >
-                    View Submission
-                  </a>
-                {% else %}
-                  <span class="text-muted">—</span>
-                {% endif %}
-              </td>
-
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="3" class="text-center py-4 text-muted">
-                No employees assigned.
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-
-        </table>
-      </div>
-
+<!-- SUMMARY STATS -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:14px; margin-top:28px;">
+  <div class="stat-card">
+    <div class="stat-label">Total Assigned</div>
+    <div class="stat-value">{{ assignments|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Submitted</div>
+    <div class="stat-value" style="color:var(--green);">
+      {{ assignments|dictsort:"status"|length }}
     </div>
   </div>
-
+  <div class="stat-card">
+    <div class="stat-label">Pending Review</div>
+    <div class="stat-value" style="color:var(--amber);">
+      {% widthratio assignments|length 1 100 %}
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Reviewed</div>
+    <div class="stat-value" style="color:var(--blue);">
+      0
+    </div>
+  </div>
 </div>
+
 {% endblock %}

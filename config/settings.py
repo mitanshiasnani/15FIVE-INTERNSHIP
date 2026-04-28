@@ -25,7 +25,6 @@ SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 # SLACK_SIGNING_SECRET = os.getenv("SLACK_SIGNING_SECRET")
 
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -50,7 +49,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'core',
     'checkins.apps.CheckinsConfig',
-    ]
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -112,6 +111,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# ========== EMAIL CONFIGURATION (CLEANED UP) ==========
+# Already configured with your Gmail credentials
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'mitanshiasnani.todoit@gmail.com'
+EMAIL_HOST_PASSWORD = 'usxcskdssqqivssw'
+DEFAULT_FROM_EMAIL = 'noreply@15five.com'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -132,24 +141,12 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# ========== AUTHENTICATION ==========
 AUTH_USER_MODEL = 'accounts.User'
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/accounts/post-login-redirect/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# ========== SLACK CONFIGURATION ==========
 ADMIN_SLACK_USER_ID = "U0A64KK3XTR"
-
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
-EMAIL_HOST_USER = "mitanshiasnani.todoit@gmail.com"
-EMAIL_HOST_PASSWORD = "usxcskdssqqivssw"
-
-DEFAULT_FROM_EMAIL = "ToDo IT <mitanshiasnani.todoit@gmail.com>"
-
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/redirect/'
-LOGOUT_REDIRECT_URL = '/login/'
-
-

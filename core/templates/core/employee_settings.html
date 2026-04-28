@@ -1,225 +1,61 @@
 {% extends "core/employee_base.html" %}
-
+{% block breadcrumb %}Settings{% endblock %}
 {% block title %}Settings | 15-Five{% endblock %}
 
 {% block content %}
-<style>
-.settings-wrapper {
-    max-width: 720px;
-}
 
-.settings-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 28px 32px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    border: 1px solid #e5e7eb;
-}
-
-.settings-card h3 {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.settings-card p.subtext {
-    color: #64748b;
-    font-size: 14px;
-    margin-bottom: 22px;
-}
-
-.divider {
-    height: 1px;
-    background: #e5e7eb;
-    margin-bottom: 22px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    font-size: 14px;
-    font-weight: 600;
-    display: block;
-    margin-bottom: 8px;
-}
-
-.input-wrapper {
-    position: relative;
-}
-
-.input-wrapper input {
-    width: 100%;
-    padding: 12px 44px;
-    border-radius: 10px;
-    border: 1px solid #d1d5db;
-    font-size: 14px;
-    background: #f8fafc;
-}
-
-.input-wrapper svg {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    color: #94a3b8;
-}
-
-.icon-left {
-    left: 14px;
-}
-
-.icon-right {
-    right: 14px;
-    cursor: pointer;
-}
-
-.icon-right:hover {
-    color: #3b82f6;
-}
-
-.password-hint {
-    font-size: 13px;
-    color: #64748b;
-    margin-top: 6px;
-}
-
-.primary-btn {
-    margin-top: 16px;
-    padding: 12px 22px;
-    border-radius: 10px;
-    border: none;
-    background: #3b82f6;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.message {
-    margin-bottom: 14px;
-    font-size: 14px;
-}
-.message.error { color: #dc2626; }
-.message.success { color: #16a34a; }
-</style>
-
-<div class="settings-card">
-
-    <h3>Change Password</h3>
-    <p class="subtext">Update your password to keep your account secure</p>
-    <div class="divider"></div>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="message {{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-
-    <form method="post">
-        {% csrf_token %}
-
-        <!-- Current Password -->
-        <div class="form-group">
-            <label>Current Password</label>
-            <div class="input-wrapper">
-                <svg class="icon-left" xmlns="http://www.w3.org/2000/svg" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-width="2"
-                          d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3z"/>
-                    <path stroke-width="2" d="M5 11h14v8H5z"/>
-                </svg>
-
-                <input type="password" name="current_password" placeholder="Enter your current password" required>
-
-                <!-- Eye -->
-                <svg class="icon-right toggle-password" data-target="current_password"
-                     xmlns="http://www.w3.org/2000/svg" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-width="2"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5
-                             c4.478 0 8.268 2.943 9.542 7
-                             -1.274 4.057-5.064 7-9.542 7
-                             -4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-            </div>
-        </div>
-
-        <!-- New Password -->
-        <div class="form-group">
-            <label>New Password</label>
-            <div class="input-wrapper">
-                <svg class="icon-left" xmlns="http://www.w3.org/2000/svg" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-width="2"
-                          d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3z"/>
-                    <path stroke-width="2" d="M5 11h14v8H5z"/>
-                </svg>
-
-                <input type="password" name="new_password" placeholder="Enter your new password" required>
-
-                <svg class="icon-right toggle-password" data-target="new_password"
-                     xmlns="http://www.w3.org/2000/svg" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-width="2"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5
-                             c4.478 0 8.268 2.943 9.542 7
-                             -1.274 4.057-5.064 7-9.542 7
-                             -4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-            </div>
-
-            <div class="password-hint">
-                Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.
-            </div>
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="form-group">
-            <label>Confirm New Password</label>
-            <div class="input-wrapper">
-                <svg class="icon-left" xmlns="http://www.w3.org/2000/svg" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-width="2"
-                          d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3z"/>
-                    <path stroke-width="2" d="M5 11h14v8H5z"/>
-                </svg>
-
-                <input type="password" name="confirm_password" placeholder="Confirm your new password" required>
-
-                <svg class="icon-right toggle-password" data-target="confirm_password"
-                     xmlns="http://www.w3.org/2000/svg" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-width="2"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5
-                             c4.478 0 8.268 2.943 9.542 7
-                             -1.274 4.057-5.064 7-9.542 7
-                             -4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-            </div>
-        </div>
-
-        <button type="submit" class="primary-btn">
-            Update Password
-        </button>
-
-    </form>
+<div class="page-header">
+  <h1>Settings</h1>
+  <p>Manage your account security</p>
 </div>
 
-<script>
-document.querySelectorAll(".toggle-password").forEach(icon => {
-    icon.addEventListener("click", () => {
-        const input = icon.parentElement.querySelector("input");
-        input.type = input.type === "password" ? "text" : "password";
-    });
-});
-</script>
+<div style="max-width:480px;">
+  <div class="card">
+    <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; color:var(--text3); margin-bottom:18px;">Change Password</div>
 
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label>Current Password</label>
+        <div style="position:relative;">
+          <input type="password" name="current_password" id="pwd1" placeholder="Enter your current password" required style="padding-right:44px;">
+          <span onclick="togglePwd('pwd1',this)" style="position:absolute; right:13px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text3); font-size:15px; user-select:none;">👁</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>New Password</label>
+        <div style="position:relative;">
+          <input type="password" name="new_password" id="pwd2" placeholder="Enter your new password" required style="padding-right:44px;">
+          <span onclick="togglePwd('pwd2',this)" style="position:absolute; right:13px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text3); font-size:15px; user-select:none;">👁</span>
+        </div>
+        <div style="font-size:11.5px; color:var(--text3); margin-top:5px;">Must be at least 8 characters long</div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:24px;">
+        <label>Confirm New Password</label>
+        <div style="position:relative;">
+          <input type="password" name="confirm_password" id="pwd3" placeholder="Confirm your new password" required style="padding-right:44px;">
+          <span onclick="togglePwd('pwd3',this)" style="position:absolute; right:13px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text3); font-size:15px; user-select:none;">👁</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
+        Update Password
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePwd(id, el) {
+  const input = document.getElementById(id);
+  input.type = input.type === "password" ? "text" : "password";
+  el.textContent = input.type === "password" ? "👁" : "🙈";
+}
+</script>
 {% endblock %}

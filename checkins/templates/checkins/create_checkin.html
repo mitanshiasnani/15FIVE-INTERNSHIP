@@ -1,238 +1,255 @@
 {% extends "core/admin_base.html" %}
 {% load static %}
-
+{% block breadcrumb %}Create Check-In{% endblock %}
 {% block title %}Create Check-In | 15-Five{% endblock %}
 
 {% block content %}
 
-<div class="mb-4">
-    <h1 class="fw-bold">Create Check-In</h1>
-    <p class="text-muted">Configure and send a new check-in to your team</p>
-</div>
+<!-- Flatpickr CSS + Dark Theme -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-<form method="post">
-    {% csrf_token %}
+<style>
+  .flatpickr-calendar {
+    background: var(--bg2) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+    border-radius: 12px !important;
+  }
 
-    <!-- ================= CHECK-IN CONFIG ================= -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="fw-semibold mb-4">Check-In Configuration</h5>
+  .flatpickr-calendar.open { z-index: 999 !important; }
 
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Check-In Period</label>
-                    <select name="period" class="form-select" required>
-                        <option value="WEEKLY">Weekly</option>
-                        <option value="MONTHLY">Monthly</option>
-                    </select>
-                </div>
+  .flatpickr-monthSelect-month,
+  .flatpickr-monthSelect-year {
+    background: var(--bg3) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+  }
 
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Start Date</label>
-                    <input type="date" name="start_date" class="form-control" required>
-                </div>
-            </div>
+  .flatpickr-month { background: var(--bg3) !important; }
+  .flatpickr-months { padding: 12px 8px !important; }
+  .flatpickr-weekdays { background: var(--bg3) !important; padding: 8px 0 !important; }
+  .flatpickr-weekdays .flatpickr-weekday { color: var(--text2) !important; font-weight: 600 !important; font-size: 11px !important; }
+  .flatpickr-days { padding: 4px 8px 8px !important; }
+
+  .flatpickr-day {
+    color: var(--text2) !important;
+    border-radius: 8px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+  }
+
+  .flatpickr-day:hover {
+    background: var(--bg4) !important;
+    color: var(--text) !important;
+    border-color: var(--border-md) !important;
+  }
+
+  .flatpickr-day.selected,
+  .flatpickr-day.startRange,
+  .flatpickr-day.endRange {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #fff !important;
+  }
+
+  .flatpickr-day.inRange {
+    background: var(--accent-bg) !important;
+    box-shadow: none !important;
+    color: var(--accent-h) !important;
+  }
+
+  .flatpickr-day.disabled,
+  .flatpickr-day.prevMonthDay,
+  .flatpickr-day.nextMonthDay {
+    color: var(--text3) !important;
+  }
+
+  .flatpickr-time { border-top: 1px solid var(--border) !important; }
+  .flatpickr-time input { background: var(--bg3) !important; color: var(--text) !important; border: none !important; }
+  .flatpickr-am-pm { color: var(--text2) !important; }
+  .flatpickr-current-month { color: var(--text) !important; }
+  .flatpickr-current-month .numInputWrapper input { background: var(--bg3) !important; color: var(--text) !important; border: 1px solid var(--border) !important; }
+</style>
+
+<form method="post" style="max-width: 780px;">
+  {% csrf_token %}
+
+  <!-- CONFIG -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; color:var(--text3); margin-bottom:18px;">Check-In Configuration</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Check-In Period</label>
+        <select name="period" required>
+          <option value="WEEKLY">Weekly</option>
+          <option value="MONTHLY">Monthly</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Start Date</label>
+        <input type="text" id="start_date" name="start_date" placeholder="Select date" required>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASSIGN -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; color:var(--text3); margin-bottom:14px;">Assign Check-In To</div>
+    <div class="form-group" style="margin-bottom:0;">
+      <select name="employee" required>
+        <option value="ALL">All Employees</option>
+        {% for emp in employees %}
+          <option value="{{ emp.id }}">{{ emp.employee_profile.full_name|default:emp.email }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- DEFAULT QUESTIONS -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; color:var(--text3); margin-bottom:16px;">Default Questions</div>
+
+    <div id="default-questions-container">
+      {% for q in questions %}
+      <div class="question-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--bg3); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:8px;">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0; font-size:13.5px; color:var(--text2); flex:1;">
+          <input type="checkbox" name="questions" value="{{ q.id }}"
+                 style="width:15px; height:15px; accent-color:var(--accent); cursor:pointer; flex-shrink:0;">
+          {{ q.question_text }}
+        </label>
+        <div style="display:flex; gap:6px; margin-left:12px; flex-shrink:0;">
+          <button type="button" class="btn btn-ghost btn-sm"
+                  onclick="editDefaultQuestion('{{ q.id }}', '{{ q.question_text|escapejs }}')">Edit</button>
+          <button type="button" class="btn btn-danger btn-sm"
+                  onclick="deleteDefaultQuestion('{{ q.id }}')">Delete</button>
         </div>
+      </div>
+      {% empty %}
+      <div style="color:var(--text3); font-size:13px; padding:12px 0;">No default questions yet.</div>
+      {% endfor %}
     </div>
 
-    <!-- ================= ASSIGN TO EMPLOYEE ================= -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="fw-semibold mb-3">Assign Check-In To</h5>
-
-            <select name="employee" class="form-select" required>
-                <option value="ALL">All Employees</option>
-                {% for emp in employees %}
-                    <option value="{{ emp.id }}">
-                        {{ emp.employee_profile.full_name|default:emp.email }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
+    <!-- ADD DEFAULT QUESTION -->
+    <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+      <label style="margin-bottom:8px; display:block;">Add Default Question</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="default-question-input" placeholder="Enter default question" style="flex:1;">
+        <button type="button" class="btn btn-ghost" onclick="addDefaultQuestion()">Add</button>
+      </div>
     </div>
 
-    <!-- ================= DEFAULT QUESTIONS ================= -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-
-            <h5 class="fw-semibold mb-4">Default Questions</h5>
-
-            <div id="default-questions-container">
-                {% for q in questions %}
-                <div class="d-flex justify-content-between align-items-center mb-3">
-
-                    <div class="form-check">
-                        <input class="form-check-input question-checkbox"
-                               type="checkbox"
-                               name="questions"
-                               value="{{ q.id }}">
-                        <label class="form-check-label fw-medium">
-                            {{ q.question_text }}
-                        </label>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            onclick="editDefaultQuestion('${data.id}', '${data.question_text}')">
-                            Edit
-                        </button>
-                    
-                        <button type="button"
-        class="btn btn-sm btn-outline-secondary"
-        onclick="deleteDefaultQuestion('{{ q.id }}')">
-    Delete
-</button>
-
-                    </div>
-                    
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- ADD DEFAULT QUESTION -->
-            <div class="mt-4">
-                <h6 class="fw-semibold mb-2">Add Default Question</h6>
-
-                <div class="d-flex gap-2">
-                    <input type="text"
-                           id="default-question-input"
-                           class="form-control"
-                           placeholder="Enter default question">
-                    <button type="button"
-                            class="btn btn-outline-primary"
-                            onclick="addDefaultQuestion()">
-                        Add
-                    </button>
-                </div>
-            </div>
-
-            <hr class="my-4">
-
-            <h6 class="fw-semibold mb-2">Custom Questions</h6>
-            <div id="custom-questions"></div>
-
-            <button type="button"
-                    class="btn btn-outline-primary mt-2"
-                    onclick="addCustomQuestion()">
-                + Add Custom Question
-            </button>
-
-        </div>
+    <!-- CUSTOM QUESTIONS -->
+    <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+      <label style="margin-bottom:10px; display:block;">Custom Questions</label>
+      <div id="custom-questions"></div>
+      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="addCustomQuestion()">
+        ＋ Add Custom Question
+      </button>
     </div>
+  </div>
 
-    <div class="d-flex justify-content-end gap-3">
-        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary px-4">
-            Cancel
-        </a>
-        <button type="submit" class="btn btn-primary px-4">
-            Send Check-In
-        </button>
-    </div>
+  <!-- ACTIONS -->
+  <div style="display:flex; justify-content:flex-end; gap:10px;">
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-ghost">Cancel</a>
+    <button type="submit" class="btn btn-primary">Send Check-In →</button>
+  </div>
+
 </form>
 
-<!-- ✅ SINGLE GLOBAL DELETE FORM -->
-<form method="post"
-      id="delete-default-question-form"
+<!-- HIDDEN DELETE FORM -->
+<form method="post" id="delete-default-question-form"
       class="delete-form"
       data-message="This default question will be removed from all future check-ins.">
-    {% csrf_token %}
-    <input type="hidden" name="delete_question_id" id="delete_question_id">
+  {% csrf_token %}
+  <input type="hidden" name="delete_question_id" id="delete_question_id">
 </form>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
-function deleteDefaultQuestion(id) {
-    const form = document.getElementById("delete-default-question-form");
-    document.getElementById("delete_question_id").value = id;
+// Initialize Flatpickr date picker
+flatpickr("#start_date", {
+  dateFormat: "Y-m-d",
+  theme: "dark",
+  disableMobile: false,
+  minDate: new Date(),
+});
 
-    // ✅ Proper native submit (SweetAlert will intercept)
-    form.requestSubmit();
+function deleteDefaultQuestion(id) {
+  document.getElementById("delete_question_id").value = id;
+  document.getElementById("delete-default-question-form").requestSubmit();
 }
 
-
 function addDefaultQuestion() {
-    const input = document.getElementById("default-question-input");
-    const text = input.value.trim();
+  const input = document.getElementById("default-question-input");
+  const text = input.value.trim();
+  if (!text) { Swal.fire({ title:"Error", text:"Question cannot be empty.", icon:"error", background:"#1a1d24", color:"#e8eaf0" }); return; }
 
-    if (!text) {
-        Swal.fire("Error", "Question cannot be empty.", "error");
-        return;
-    }
-
-    fetch("", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": "{{ csrf_token }}",
-            "X-Requested-With": "XMLHttpRequest",
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-            add_question: "1",
-            question_text: text
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        const container = document.getElementById("default-questions-container");
-
-        const div = document.createElement("div");
-        div.className = "d-flex justify-content-between align-items-center mb-3";
-        div.innerHTML = `
-            <div class="form-check">
-                <input class="form-check-input question-checkbox"
-                       type="checkbox"
-                       name="questions"
-                       value="${data.id}">
-                <label class="form-check-label fw-medium">
-                    ${data.question_text}
-                </label>
-            </div>
-            <div class="d-flex gap-2">
-                <button type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        onclick="editDefaultQuestion('${data.id}', '${data.question_text}')">
-                    Edit
-                </button>
-                <button type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        onclick="deleteDefaultQuestion('${data.id}')">
-                    Delete
-                </button>
-            </div>
-        `;
-        container.appendChild(div);
-        input.value = "";
-    });
+  fetch("", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}",
+      "X-Requested-With": "XMLHttpRequest",
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ add_question: "1", question_text: text })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const container = document.getElementById("default-questions-container");
+    const div = document.createElement("div");
+    div.className = "question-row";
+    div.style.cssText = "display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--bg3); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:8px;";
+    div.innerHTML = `
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0; font-size:13.5px; color:var(--text2); flex:1;">
+        <input type="checkbox" name="questions" value="${data.id}" style="width:15px; height:15px; accent-color:var(--accent); cursor:pointer; flex-shrink:0;" checked>
+        ${data.question_text}
+      </label>
+      <div style="display:flex; gap:6px; margin-left:12px; flex-shrink:0;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="editDefaultQuestion('${data.id}', '${data.question_text.replace(/'/g,"\\'")}')">Edit</button>
+        <button type="button" class="btn btn-danger btn-sm" onclick="deleteDefaultQuestion('${data.id}')">Delete</button>
+      </div>`;
+    container.appendChild(div);
+    input.value = "";
+  });
 }
 
 function editDefaultQuestion(id, text) {
-    const newText = prompt("Edit default question:", text);
-    if (!newText) return;
-
+  Swal.fire({
+    title: "Edit Question",
+    input: "text",
+    inputValue: text,
+    showCancelButton: true,
+    confirmButtonText: "Save",
+    background: "#1a1d24",
+    color: "#e8eaf0",
+    confirmButtonColor: "#5b6af5",
+    cancelButtonColor: "#3a3f4e",
+    inputAttributes: { style: "background:#21242d; color:#e8eaf0; border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:10px;" }
+  }).then(result => {
+    if (!result.isConfirmed || !result.value.trim()) return;
     const form = document.createElement("form");
     form.method = "POST";
     form.innerHTML = `
-        {% csrf_token %}
-        <input type="hidden" name="edit_question_id" value="${id}">
-        <input type="hidden" name="edit_question_text" value="${newText}">
-    `;
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" name="edit_question_id" value="${id}">
+      <input type="hidden" name="edit_question_text" value="${result.value}">`;
     document.body.appendChild(form);
     form.submit();
+  });
 }
 
 function addCustomQuestion() {
-    const container = document.getElementById("custom-questions");
-    const wrapper = document.createElement("div");
-    wrapper.className = "d-flex gap-2 mt-3";
-    wrapper.innerHTML = `
-        <input type="text" name="custom_questions[]" class="form-control" required>
-        <button type="button" class="btn btn-outline-secondary"
-                onclick="this.parentElement.remove()">Remove</button>
-    `;
-    container.appendChild(wrapper);
+  const container = document.getElementById("custom-questions");
+  const div = document.createElement("div");
+  div.style.cssText = "display:flex; gap:8px; margin-bottom:8px;";
+  div.innerHTML = `
+    <input type="text" name="custom_questions[]" placeholder="Enter custom question" style="flex:1;" required>
+    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove</button>`;
+  container.appendChild(div);
 }
 </script>
 {% endblock %}

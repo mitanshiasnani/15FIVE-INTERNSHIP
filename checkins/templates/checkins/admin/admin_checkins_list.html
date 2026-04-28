@@ -1,101 +1,60 @@
 {% extends "core/admin_base.html" %}
-
-{% block title %}Check-Ins{% endblock %}
+{% block breadcrumb %}Check-In History{% endblock %}
+{% block title %}Check-Ins | 15-Five{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
 
-  <!-- HEADER -->
-  <div class="mb-4">
-    <h1 class="fw-bold">Check-Ins</h1>
-    <p class="text-muted mb-0">
-      All created check-ins
-    </p>
+<div class="page-header" style="display:flex; align-items:center; justify-content:space-between;">
+  <div>
+    <h1>Check-In History</h1>
+    <p>All created check-ins and their submission status</p>
   </div>
-
-  <!-- TABLE CARD -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
-
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Period</th>
-              <th>Check-In</th>
-              <th class="text-center">Assigned</th>
-              <th class="text-center">Submitted</th>
-              <th class="text-center">Pending Review</th>
-              <th class="text-center">Reviewed</th>
-              <th class="text-end">Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for row in rows %}
-            <tr class="border-top">
-
-              <!-- PERIOD -->
-              <td data-label="Period">
-                {{ row.form.start_date|date:"d M" }} –
-                {{ row.form.end_date|date:"d M Y" }}
-              </td>
-
-              <!-- TITLE -->
-              <td data-label="Check-In" class="fw-semibold">
-                {{ row.form.title }}
-              </td>
-
-              <!-- COUNTS -->
-              <td data-label="Assigned" class="text-center">
-                <span class="badge bg-secondary">
-                  {{ row.total }}
-                </span>
-              </td>
-
-              <td data-label="Submitted" class="text-center">
-                <span class="badge bg-success">
-                  {{ row.submitted }}
-                </span>
-              </td>
-
-              <td data-label="Pending Review" class="text-center">
-                <span class="badge bg-warning text-dark">
-                  {{ row.pending_review }}
-                </span>
-              </td>
-
-              <td data-label="Reviewed" class="text-center">
-                <span class="badge bg-primary">
-                  {{ row.reviewed }}
-                </span>
-              </td>
-
-              <!-- ACTION -->
-              <td data-label="Action" class="text-end">
-                <a
-                  href="{% url 'admin_checkin_overview' row.form.id %}"
-                  class="btn btn-sm btn-outline-primary"
-                >
-                  View
-                </a>
-              </td>
-
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="7" class="text-center py-5 text-muted">
-                No check-ins created yet.
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-
-        </table>
-      </div>
-
-    </div>
-  </div>
-
+  <a href="{% url 'create_checkin' %}" class="btn btn-primary">✦ Create New</a>
 </div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Period</th>
+        <th>Title</th>
+        <th style="text-align:center;">Assigned</th>
+        <th style="text-align:center;">Submitted</th>
+        <th style="text-align:center;">Pending Review</th>
+        <th style="text-align:center;">Reviewed</th>
+        <th style="text-align:right;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td style="color:var(--text3); font-size:12.5px; white-space:nowrap;">
+          {{ row.form.start_date|date:"d M" }} – {{ row.form.end_date|date:"d M Y" }}
+        </td>
+        <td style="font-weight:500; color:var(--text);">{{ row.form.title }}</td>
+        <td style="text-align:center;">
+          <span class="badge badge-blue">{{ row.total }}</span>
+        </td>
+        <td style="text-align:center;">
+          <span class="badge badge-green">{{ row.submitted }}</span>
+        </td>
+        <td style="text-align:center;">
+          <span class="badge badge-amber">{{ row.pending_review }}</span>
+        </td>
+        <td style="text-align:center;">
+          <span class="badge badge-blue">{{ row.reviewed }}</span>
+        </td>
+        <td style="text-align:right;">
+          <a href="{% url 'admin_checkin_overview' row.form.id %}" class="btn btn-ghost btn-sm">View →</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="empty">No check-ins created yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% endblock %}

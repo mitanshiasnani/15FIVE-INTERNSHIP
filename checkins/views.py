@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
+from django.http import JsonResponse
 from calendar import monthrange
 from datetime import timedelta
-from checkins.services.slack import send_admin_reviewed_dm
-
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -19,7 +19,8 @@ from .models import (
     CheckInAnswer,
 )
 
-from checkins.services.slack import send_checkin_assigned_dm
+from checkins.services.slack import send_admin_reviewed_dm, send_checkin_assigned_dm
+from checkins.analysis import create_analysis_for_answer
 
 
 # -------------------------------------------------
@@ -39,55 +40,6 @@ def get_slack_user_id(user):
 # -------------------------------
 # ADMIN: CREATE CHECK-IN
 # -------------------------------
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from calendar import monthrange
-from datetime import timedelta
-
-from accounts.models import User
-from .models import (
-    Question,
-    CheckInForm,
-    CheckInFormQuestion,
-    CheckInAssignment,
-)
-from checkins.services.slack import send_checkin_assigned_dm
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.utils import timezone
-from calendar import monthrange
-from datetime import timedelta
-
-from accounts.models import User
-from .models import (
-    Question,
-    CheckInForm,
-    CheckInFormQuestion,
-    CheckInAssignment,
-)
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.utils import timezone
-from django.http import JsonResponse
-from calendar import monthrange
-from datetime import timedelta
-
-from accounts.models import User
-from .models import (
-    Question,
-    CheckInForm,
-    CheckInFormQuestion,
-    CheckInAssignment,
-)
-
-
 @login_required
 def create_checkin(request):
     print("🔥 CREATE_CHECKIN HIT")
@@ -300,32 +252,54 @@ def employee_checkin_form(request, assignment_id):
         action = request.POST.get("action")
         has_any_answer = False
 
-        for fq in questions:
-            text = request.POST.get(
-                f"question_{fq.question.id}", ""
-            ).strip()
+        print(f"\n🔥 FORM SUBMITTED - All POST data: {dict(request.POST)}\n")
+
+        for q in questions:
+            # Get the answer from the form field
+            field_name = f"question_{q.question.id}"
+            text = request.POST.get(field_name, "").strip()
+
+            print(f"📝 Field '{field_name}': {text[:50] if text else 'EMPTY'}")
 
             if text:
                 has_any_answer = True
 
-            CheckInAnswer.objects.update_or_create(
+            # Save answer
+            answer, created = CheckInAnswer.objects.update_or_create(
                 assignment=assignment,
-                question=fq.question,
+                question=q.question,
                 defaults={
                     "employee": request.user,
                     "answer_text": text
                 }
             )
 
+            print(f"✅ Answer saved - ID: {answer.id}, Created: {created}")
+
+            # ✅ TRIGGER SENTIMENT ANALYSIS
+            if text:
+                print(f"🔍 CALLING create_analysis_for_answer for answer {answer.id}...")
+                try:
+                    result = create_analysis_for_answer(answer)
+                    print(f"✅ Analysis created: {result}")
+                except Exception as e:
+                    print(f"❌ Analysis error: {e}")
+                    import traceback
+                    traceback.print_exc()
+
+        print(f"has_any_answer: {has_any_answer}, action: {action}\n")
+
         if action == "draft":
             if has_any_answer and assignment.status != "SUBMITTED":
                 assignment.status = "PARTIAL"
                 assignment.save()
+                print(f"💾 Saved as PARTIAL")
 
         elif action == "submit":
             assignment.status = "SUBMITTED"
             assignment.submitted_at = timezone.now()
             assignment.save()
+            print(f"✅ Submitted check-in")
 
         return redirect("employee_dashboard")
 
@@ -342,10 +316,11 @@ def employee_checkin_form(request, assignment_id):
             "questions": questions,
             "existing_answers": existing_answers,
             "is_expired": is_expired,
-            "admin_comment": assignment.admin_comment,      # ✅ NEW
-            "is_reviewed": assignment.review_status == "REVIEWED",  # ✅ NEW
+            "admin_comment": assignment.admin_comment,
+            "is_reviewed": assignment.review_status == "REVIEWED",
         }
     )
+
 
 
 # -------------------------------
@@ -403,6 +378,7 @@ def admin_checkin_detail(request, assignment_id):
         if assignment.review_status != "REVIEWED":
             assignment.review_status = "REVIEWED"
             assignment.reviewed_at = timezone.now()
+            assignment.admin_comment = request.POST.get("admin_comment", "")
             assignment.save()
 
             send_mail(
@@ -453,38 +429,13 @@ def admin_employee_checkins(request, employee_id):
             "assignments": assignments,
         }
     )
-@login_required
-def admin_checkin_detail(request, checkin_id):
-    # 🔐 Admin-only
-    if not request.user.is_superuser and request.user.role != "ADMIN":
-        return redirect("employee_dashboard")
-
-    checkin = get_object_or_404(CheckInForm, id=checkin_id)
-
-    assignments = (
-        CheckInAssignment.objects
-        .filter(checkin_form=checkin)
-        .select_related("employee")
-        .order_by("employee__email")
-    )
-
-    return render(
-        request,
-        "checkins/admin/admin_checkin_detail.html",
-        {
-            "checkin": checkin,
-            "assignments": assignments,
-        }
-    )
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render, redirect
-
-from checkins.models import CheckInForm, CheckInAssignment
 
 
+# -------------------------------
+# ADMIN: CHECK-IN OVERVIEW
+# -------------------------------
 @login_required
 def admin_checkin_overview(request, checkin_id):
-    # 🔐 Admin-only protection
     if not request.user.is_superuser and request.user.role != "ADMIN":
         return redirect("employee_dashboard")
 
@@ -505,16 +456,11 @@ def admin_checkin_overview(request, checkin_id):
             "assignments": assignments,
         }
     )
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render, redirect
-from django.utils import timezone
-
-from checkins.models import CheckInAssignment, CheckInAnswer
 
 
-from django.utils import timezone
-from checkins.services.slack import send_admin_reviewed_dm
-
+# -------------------------------
+# ADMIN: ASSIGNMENT REVIEW
+# -------------------------------
 @login_required
 def admin_assignment_review(request, assignment_id):
     if not request.user.is_superuser and request.user.role != "ADMIN":
@@ -538,9 +484,9 @@ def admin_assignment_review(request, assignment_id):
         )
 
         # 🔔 Slack DM to employee
-        if assignment.employee.employee_profile.slack_user_id:
+        if hasattr(assignment.employee, 'employeeprofile') and assignment.employee.employeeprofile.slack_user_id:
             send_admin_reviewed_dm(
-                slack_user_id=assignment.employee.employee_profile.slack_user_id,
+                slack_user_id=assignment.employee.employeeprofile.slack_user_id,
                 title=assignment.checkin_form.title,
                 start_date=assignment.checkin_form.start_date,
                 end_date=assignment.checkin_form.end_date,
@@ -559,24 +505,15 @@ def admin_assignment_review(request, assignment_id):
     )
 
 
-
-
-    # checkins/views.py
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-
-from .models import Question
-
-
+# -------------------------------
+# MANAGE DEFAULT QUESTIONS
+# -------------------------------
 @login_required
 def manage_default_questions(request):
-    # 🔐 Admin-only
     if request.user.role != "ADMIN":
         return redirect("employee_dashboard")
 
-    # ---------------- ADD QUESTION ----------------
+    # ADD QUESTION
     if request.method == "POST" and "add_question" in request.POST:
         text = request.POST.get("question_text", "").strip()
 
@@ -592,14 +529,14 @@ def manage_default_questions(request):
 
         return redirect("manage_default_questions")
 
-    # ---------------- DELETE QUESTION ----------------
+    # DELETE QUESTION
     if request.method == "POST" and "delete_question_id" in request.POST:
         qid = request.POST.get("delete_question_id")
         Question.objects.filter(id=qid, is_default=True).delete()
         messages.success(request, "Default question deleted.")
         return redirect("manage_default_questions")
 
-    # ---------------- EDIT QUESTION ----------------
+    # EDIT QUESTION
     if request.method == "POST" and "edit_question_id" in request.POST:
         qid = request.POST.get("edit_question_id")
         new_text = request.POST.get("edit_question_text", "").strip()
@@ -619,5 +556,3 @@ def manage_default_questions(request):
         "checkins/admin/manage_default_questions.html",
         {"questions": questions}
     )
-
-  

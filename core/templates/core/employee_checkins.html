@@ -1,74 +1,48 @@
 {% extends "core/employee_base.html" %}
-
+{% block breadcrumb %}My Check-Ins{% endblock %}
 {% block title %}My Check-Ins | 15-Five{% endblock %}
 
 {% block content %}
 
-<h1 class="page-title">My Check-Ins</h1>
+<div class="page-header">
+  <h1>My Check-Ins</h1>
+  <p>All your assigned check-ins and their current status</p>
+</div>
 
-{% for assignment in assignments %}
-    <div class="checkin-card">
-        <div class="checkin-left">
-
-            <!-- STATUS ICON -->
-            {% if assignment.status == "SUBMITTED" %}
-                <div class="checkin-icon success-icon">
-                    <i class="bi bi-check-circle"></i>
-                </div>
-            {% elif assignment.status == "PARTIAL" %}
-                <div class="checkin-icon info-icon">
-                    <i class="bi bi-pencil-square"></i>
-                </div>
-            {% else %}
-                <div class="checkin-icon pending-icon">
-                    <i class="bi bi-clock"></i>
-                </div>
-            {% endif %}
-
-            <div>
-                <div class="checkin-title">
-                    {{ assignment.checkin_form.start_date|date:"d M Y" }}
-                    →
-                    {{ assignment.checkin_form.end_date|date:"d M Y" }}
-                </div>
-                <div class="checkin-date">
-                    {{ assignment.checkin_form.title }}
-                </div>
-            </div>
-        </div>
-
-        <div class="checkin-right">
-            {% if assignment.status == "SUBMITTED" %}
-                <span class="badge rounded-pill bg-success-subtle text-success">
-                    Submitted
-                </span>
-                <a href="{% url 'employee_checkin_form' assignment.id %}"
-                   class="primary-btn outline">
-                    View
-                </a>
-
-            {% elif assignment.status == "PARTIAL" %}
-                <span class="badge rounded-pill bg-info-subtle text-info">
-                    Partially Filled
-                </span>
-                <a href="{% url 'employee_checkin_form' assignment.id %}"
-                   class="primary-btn">
-                    Continue
-                </a>
-
-            {% else %}
-                <span class="badge rounded-pill bg-warning-subtle text-warning">
-                    Pending
-                </span>
-                <a href="{% url 'employee_checkin_form' assignment.id %}"
-                   class="primary-btn">
-                    Submit
-                </a>
-            {% endif %}
-        </div>
+{% if assignments %}
+  {% for assignment in assignments %}
+  <div class="checkin-row">
+    <div class="checkin-left">
+      <div class="checkin-dot
+        {% if assignment.status == 'SUBMITTED' %}dot-submitted
+        {% elif assignment.status == 'PARTIAL' %}dot-partial
+        {% else %}dot-pending{% endif %}">
+      </div>
+      <div class="checkin-info">
+        <div class="checkin-title">{{ assignment.checkin_form.title }}</div>
+        <div class="checkin-meta">{{ assignment.checkin_form.start_date|date:"d M Y" }} → {{ assignment.checkin_form.end_date|date:"d M Y" }}</div>
+      </div>
     </div>
-{% empty %}
-    <p style="color:#64748b;">No check-ins available.</p>
-{% endfor %}
+    <div class="checkin-right">
+      {% if assignment.status == "SUBMITTED" %}
+        <span class="badge badge-green">Submitted</span>
+        <a href="{% url 'employee_checkin_form' assignment.id %}" class="btn btn-ghost btn-sm">View →</a>
+      {% elif assignment.status == "PARTIAL" %}
+        <span class="badge badge-blue">In Progress</span>
+        <a href="{% url 'employee_checkin_form' assignment.id %}" class="btn btn-primary btn-sm">Continue →</a>
+      {% else %}
+        <span class="badge badge-amber">Pending</span>
+        <a href="{% url 'employee_checkin_form' assignment.id %}" class="btn btn-primary btn-sm">Start →</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div style="background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:48px 20px; text-align:center;">
+    <div style="font-size:28px; margin-bottom:12px;">✦</div>
+    <div style="color:var(--text2); font-size:14px; font-weight:500;">No check-ins assigned yet</div>
+    <div style="color:var(--text3); font-size:13px; margin-top:4px;">Your manager will assign check-ins when they're ready</div>
+  </div>
+{% endif %}
 
 {% endblock %}

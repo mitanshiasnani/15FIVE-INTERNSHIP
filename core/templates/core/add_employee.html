@@ -1,209 +1,68 @@
 {% extends "core/admin_base.html" %}
+{% block breadcrumb %}Add Employee{% endblock %}
 
 {% block content %}
 
-<style>
-    .page-title {
-        font-size: 32px;
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    .page-subtitle {
-        color: #475569;
-        margin-bottom: 24px;
-    }
-
-    .form-card {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 32px;
-        max-width: 820px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-    }
-
-    .form-label {
-        font-weight: 600;
-        color: #0f172a;
-    }
-
-    .form-control {
-        height: 52px;
-        border-radius: 12px;
-        border: 1px solid #cbd5e1;
-        padding-left: 44px;
-        padding-right: 44px; /* 👁️ space */
-    }
-
-    .input-wrapper {
-        position: relative;
-    }
-
-    .input-icon {
-        position: absolute;
-        top: 50%;
-        left: 14px;
-        transform: translateY(-50%);
-        color: #94a3b8;
-    }
-
-    .toggle-eye {
-        position: absolute;
-        top: 50%;
-        right: 14px;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: #94a3b8;
-        font-size: 16px;
-        user-select: none;
-    }
-
-    .helper-text {
-        font-size: 14px;
-        color: #64748b;
-        margin-top: 6px;
-    }
-
-    .note-box {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        color: #1e3a8a;
-        border-radius: 12px;
-        padding: 16px;
-        font-size: 14px;
-        margin-top: 24px;
-    }
-
-    .btn-primary {
-        background-color: #4f8fe7;
-        border: none;
-        height: 52px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 16px;
-    }
-
-    .btn-outline {
-        height: 52px;
-        border-radius: 12px;
-        padding: 0 28px;
-        border: 1px solid #cbd5e1;
-        background: white;
-        font-weight: 600;
-        display: flex;
-    align-items: center;
-    justify-content: center;
-    }
-
-    .action-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        margin-top: 32px;
-        align-items: center;
-    }
-</style>
-
-<!-- PAGE HEADER -->
-<h1 class="page-title">Add New Employee</h1>
-<p class="page-subtitle">
-    Create a new employee account and send them their login credentials
-</p>
-
-<!-- FORM CARD -->
-<div class="form-card">
-
-    <form method="post">
-        {% csrf_token %}
-
-        <!-- EMAIL -->
-        <div class="mb-4">
-            <label class="form-label">Email Address <span class="text-danger">*</span></label>
-            <div class="input-wrapper">
-                <span class="input-icon">✉️</span>
-                <input
-                    type="email"
-                    name="email"
-                    class="form-control"
-                    placeholder="employee@company.com"
-                    required
-                >
-            </div>
-            <div class="helper-text">
-                This will be the employee's login email
-            </div>
-        </div>
-
-        <!-- PASSWORD -->
-        <div class="mb-4">
-            <label class="form-label">Password <span class="text-danger">*</span></label>
-            <div class="input-wrapper">
-                <span class="input-icon">🔒</span>
-                <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    class="form-control"
-                    placeholder="Enter password"
-                    required
-                >
-                <span class="toggle-eye" onclick="togglePassword('password', this)">👁️</span>
-            </div>
-            <div class="helper-text">
-                Must be at least 8 characters long
-            </div>
-        </div>
-
-        <!-- CONFIRM PASSWORD -->
-        <div class="mb-4">
-            <label class="form-label">
-                Confirm Password <span class="text-muted" style="color: red;">*</span>
-            </label>
-            <div class="input-wrapper">
-                <span class="input-icon">🔒</span>
-                <input
-                    type="password"
-                    id="confirm_password"
-                    class="form-control"
-                    placeholder="Re-enter password"
-                >
-                <span class="toggle-eye" onclick="togglePassword('confirm_password', this)">👁️</span>
-            </div>
-        </div>
-
-        <!-- NOTE -->
-        <div class="note-box">
-            <strong>ℹ️ Note:</strong>
-            Login credentials will be automatically emailed to the employee
-            at the provided email address. They will be able to log in
-            immediately after account creation.
-        </div>
-
-        <!-- ACTIONS -->
-        <div class="action-buttons">
-            <button type="submit" class="btn btn-primary w-100">
-                ➕ Add Employee
-            </button>
-
-            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline">
-                Cancel
-            </a>
-        </div>
-
-    </form>
+<div class="page-header">
+  <h1>Add New Employee</h1>
+  <p>Create a new employee account and send them their login credentials</p>
 </div>
 
-<script>
-    function togglePassword(id, el) {
-        const input = document.getElementById(id);
-        if (input.type === "password") {
-            input.type = "text";
-            el.textContent = "🙈";
-        } else {
-            input.type = "password";
-            el.textContent = "👁️";
-        }
-    }
-</script>
+<div style="max-width: 560px;">
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
 
+      <div class="form-group">
+        <label>Email Address <span style="color:var(--red)">*</span></label>
+        <input type="email" name="email" placeholder="employee@company.todoit" required>
+        <div style="font-size:12px; color:var(--text3); margin-top:6px;">Must contain .todoit — this will be the employee's login email</div>
+      </div>
+
+      <div class="form-group">
+        <label>Password <span style="color:var(--red)">*</span></label>
+        <div style="position:relative;">
+          <input type="password" name="password" id="password" placeholder="Enter password" required style="padding-right:44px;">
+          <span onclick="togglePwd('password', this)"
+                style="position:absolute; right:13px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text3); font-size:15px; user-select:none;">👁</span>
+        </div>
+        <div style="font-size:12px; color:var(--text3); margin-top:6px;">Must be at least 8 characters long</div>
+      </div>
+
+      <div class="form-group">
+        <label>Confirm Password <span style="color:var(--red)">*</span></label>
+        <div style="position:relative;">
+          <input type="password" id="confirm_password" placeholder="Re-enter password" required style="padding-right:44px;">
+          <span onclick="togglePwd('confirm_password', this)"
+                style="position:absolute; right:13px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text3); font-size:15px; user-select:none;">👁</span>
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-bottom:24px;">
+        <strong>Note:</strong> Login credentials will be automatically emailed to the employee. They can log in immediately after account creation.
+      </div>
+
+      <div style="display:flex; gap:12px;">
+        <button type="submit" class="btn btn-primary" style="flex:1; justify-content:center; padding:11px;">
+          ＋ Add Employee
+        </button>
+        <a href="{% url 'employee_list' %}" class="btn btn-ghost" style="padding:11px 20px;">
+          Cancel
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePwd(id, el) {
+  const input = document.getElementById(id);
+  input.type = input.type === "password" ? "text" : "password";
+  el.textContent = input.type === "password" ? "👁" : "🙈";
+}
+</script>
 {% endblock %}

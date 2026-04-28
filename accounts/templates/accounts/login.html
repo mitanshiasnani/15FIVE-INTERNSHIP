@@ -2,211 +2,296 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login | 15Five</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Bootstrap 5 -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
-    body {
-      background-color: #f8fafc;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d0e11;
+      --bg2:      #13151a;
+      --bg3:      #1a1d24;
+      --bg4:      #21242d;
+      --border:   rgba(255,255,255,0.07);
+      --border-md:rgba(255,255,255,0.12);
+      --text:     #e8eaf0;
+      --text2:    #9095a3;
+      --text3:    #555b6a;
+      --accent:   #5b6af5;
+      --accent-h: #6e7cf7;
+      --red:      #f05252;
+    }
+
+    html, body {
       min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 20px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(91,106,245,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(91,106,245,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(91,106,245,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .login-wrap {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .logo-mark {
+      width: 38px; height: 38px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 24px rgba(91,106,245,0.35);
+    }
+
+    .logo-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .logo-name span {
+      color: var(--accent-h);
     }
 
     .login-card {
       width: 100%;
-      max-width: 420px;
-      background: #ffffff;
-      border-radius: 14px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-      padding: 32px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
     }
 
-    .logo {
-      display: block;
-      margin: 0 auto 12px;
-      height: 70px;
-      width: 260px;
-    }
-
-    .tagline {
-      text-align: center;
-      font-size: 11px;
-      letter-spacing: 1px;
-      color: #94a3b8;
-      margin-bottom: 24px;
-    }
-
-    h1 {
-      text-align: center;
-      font-size: 24px;
-      font-weight: 600;
-      color: #0f172a;
+    .card-heading {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.4px;
       margin-bottom: 6px;
+      text-align: center;
     }
 
-    .subtitle {
+    .card-sub {
+      font-size: 13.5px;
+      color: var(--text2);
       text-align: center;
-      color: #64748b;
-      font-size: 14px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
     }
 
     label {
-      font-size: 14px;
+      display: block;
+      font-size: 12.5px;
       font-weight: 500;
-      color: #0f172a;
-      margin-bottom: 6px;
+      color: var(--text2);
+      margin-bottom: 7px;
     }
 
-    .form-control {
-      height: 46px;
-      border-radius: 10px;
-      border: 1px solid #cbd5e1;
-      font-size: 14px;
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border-md);
+      border-radius: 9px;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none;
     }
 
-    .form-control:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91,106,245,0.15);
     }
+
+    input::placeholder { color: var(--text3); }
+
+    .pwd-wrap {
+      position: relative;
+    }
+
+    .pwd-wrap input { padding-right: 44px; }
+
+    .pwd-toggle {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 15px;
+      user-select: none;
+      transition: color 0.12s;
+    }
+
+    .pwd-toggle:hover { color: var(--text2); }
 
     .btn-login {
-      background-color: #1e3a5f;
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
       border: none;
-      height: 48px;
-      border-radius: 12px;
-      font-size: 16px;
+      border-radius: 9px;
+      padding: 11px;
+      font-size: 14px;
       font-weight: 600;
-      margin-top: 10px;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 4px 16px rgba(91,106,245,0.3);
     }
 
     .btn-login:hover {
-      background-color: #162c48;
+      background: var(--accent-h);
+      box-shadow: 0 6px 20px rgba(91,106,245,0.4);
     }
 
-    .forgot-link {
-      display: block;
+    .btn-login:active { transform: scale(0.99); }
+
+    .login-footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--text3);
       text-align: center;
-      margin-top: 18px;
-      font-size: 14px;
-      color: #2563eb;
-      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
-    .forgot-link:hover {
-      text-decoration: underline;
-    }
-
-    .footer-text {
-      text-align: center;
-      margin-top: 26px;
-      font-size: 13px;
-      color: #94a3b8;
+    .login-footer::before,
+    .login-footer::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
     }
   </style>
 </head>
 
 <body>
-  <div class="login-card">
-
-    <!-- Logo -->
-    <img
-      src="{% static 'images/15five-logo.png' %}"
-      alt="15Five Logo"
-      class="logo"
-    />
-    <!-- <div class="tagline">GROW BETTER EVERY WEEK</div> -->
-
-    <!-- Heading -->
-    <h1>Welcome Back</h1>
-    <p class="subtitle">Sign in to your account</p>
-
-    <!-- Django Messages -->
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-danger py-2">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-
-    <!-- Login Form -->
-    <form method="post">
-      {% csrf_token %}
-
-      <div class="mb-3">
-        <label for="email">Email Address</label>
-        <input
-          type="email"
-          name="email"
-          id="email"
-          class="form-control"
-          placeholder="you@example.com"
-          required
-        />
-      </div>
-
-      <div class="mb-3 position-relative">
-        <label for="password">Password</label>
-      
-        <input
-          type="password"
-          name="password"
-          id="password"
-          class="form-control pe-5"
-          placeholder="Enter your password"
-          required
-        />
-      
-        <!-- Eye Icon -->
-        <span
-          id="togglePassword"
-          style="
-            position: absolute;
-            right: 16px;
-            top: 38px;
-            cursor: pointer;
-            font-size: 18px;
-            color: #64748b;
-          "
-        >
-          👁️
-        </span>
-      </div>
-      
-
-      <button type="submit" class="btn btn-login text-white w-100">
-        Sign In
-      </button>
-    </form>
-
-    <!-- <a href="#" class="forgot-link">Forgot your password?</a> -->
-
-    <div class="footer-text">
-      Available for Admin and Employee roles
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="logo-mark">⚡</div>
+      <div class="logo-name">15<span>-Five</span></div>
     </div>
+
+    <div class="login-card">
+      <div class="card-heading">Welcome back</div>
+      <div class="card-sub">Sign in to your account</div>
+
+      <form method="post" id="loginForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" name="email" id="email"
+                 placeholder="you@company.todoit" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="pwd-wrap">
+            <input type="password" name="password" id="password"
+                   placeholder="Enter your password" required>
+            <span class="pwd-toggle" id="togglePwd">👁</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login">Sign In →</button>
+      </form>
+    </div>
+
+    <div class="login-footer">Admin &amp; Employee access</div>
   </div>
+
+  <!-- Store messages in data attribute for JavaScript to read -->
+  <div id="messages-data" data-messages='{% if messages %}{{ messages|safe }}{% endif %}'></div>
+
   <script>
-    const passwordInput = document.getElementById("password");
-    const togglePassword = document.getElementById("togglePassword");
-  
-    togglePassword.addEventListener("click", function () {
-      const isPassword = passwordInput.type === "password";
-  
-      passwordInput.type = isPassword ? "text" : "password";
-      togglePassword.textContent = isPassword ? "🙈" : "👁️";
+    // Password toggle
+    document.getElementById("togglePwd").addEventListener("click", function() {
+      const pwd = document.getElementById("password");
+      pwd.type = pwd.type === "password" ? "text" : "password";
+    });
+
+    // Show error messages as SweetAlert popups
+    window.addEventListener("DOMContentLoaded", function() {
+      const messagesAttr = document.getElementById("messages-data").getAttribute("data-messages");
+      
+      if (messagesAttr && messagesAttr.trim()) {
+        Swal.fire({
+          title: "Invalid Credentials",
+          text: "The email or password you entered is incorrect. Please try again.",
+          icon: "error",
+          background: "#1a1d24",
+          color: "#e8eaf0",
+          confirmButtonColor: "#5b6af5",
+          confirmButtonText: "Try again",
+          allowOutsideClick: false,
+          allowEscapeKey: false
+        });
+      }
     });
   </script>
-  
 </body>
 </html>

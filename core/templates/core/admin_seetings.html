@@ -1,29 +1,44 @@
 {% extends "core/admin_base.html" %}
-
-{% block title %}Admin Settings{% endblock %}
+{% block breadcrumb %}Settings{% endblock %}
+{% block title %}Settings | 15-Five{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 520px;">
 
-    <h1 class="fw-bold mb-4">Admin Logout</h1>
+<div class="page-header">
+  <h1>Settings</h1>
+  <p>Manage your admin account</p>
+</div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
+<div style="max-width: 480px; display: flex; flex-direction: column; gap: 16px;">
 
-            <p class="mb-3">
-                Logged in as <strong>{{ request.user.email }}</strong>
-            </p>
-
-            <form method="post" action="{% url 'logout' %}" class="logout-form">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger w-100">
-                    Logout
-                </button>
-            </form>
-            
-
-        </div>
+  <!-- ACCOUNT INFO -->
+  <div class="card">
+    <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; color:var(--text3); margin-bottom:16px;">Account</div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <div style="width:44px; height:44px; background:var(--accent-bg); border:1px solid var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:var(--accent-h); flex-shrink:0;">
+        {{ request.user.email|first|upper }}
+      </div>
+      <div>
+        <div style="font-size:14px; font-weight:500; color:var(--text);">{{ request.user.email }}</div>
+        <div style="font-size:12px; color:var(--text3); margin-top:2px;">Administrator</div>
+      </div>
     </div>
+  </div>
+
+  <!-- LOGOUT -->
+  <div class="card">
+    <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; color:var(--text3); margin-bottom:16px;">Session</div>
+    <p style="font-size:13.5px; color:var(--text2); margin-bottom:18px;">
+      You are currently logged in as <strong style="color:var(--text);">{{ request.user.email }}</strong>. Logging out will end your session.
+    </p>
+    <form method="post" action="{% url 'logout' %}" class="logout-form">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger" style="width:100%; justify-content:center;">
+        Sign Out
+      </button>
+    </form>
+  </div>
 
 </div>
+
 {% endblock %}
